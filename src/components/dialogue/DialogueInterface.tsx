@@ -11,6 +11,7 @@ import TextSelectionPopover from './TextSelectionPopover';
 import { Loader2, Send } from 'lucide-react';
 import { summarizeSessionRecap } from '@/ai/flows/summarize-session-recap';
 import { Input } from '../ui/input';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 export default function DialogueInterface() {
   const { dialogue, addDialogueMessage, stats, inventory, journal, isLoading, setIsLoading } = useGame();
@@ -80,8 +81,8 @@ export default function DialogueInterface() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-background border-x">
-       <div className="p-4 border-b flex justify-between items-center">
+    <div className="flex flex-col h-full bg-background md:border-x">
+       <div className="p-4 border-b hidden md:flex justify-between items-center">
         <h2 className="text-xl font-headline font-bold">{t('adventureTitle')}</h2>
         <Button onClick={handleRecap} variant="outline" size="sm" disabled={isRecapping}>
             {isRecapping ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
@@ -89,10 +90,14 @@ export default function DialogueInterface() {
         </Button>
        </div>
        {recap && (
-            <div className="p-4 bg-card border-b text-sm">
-                <h3 className="font-bold mb-2">{t('sessionRecapTitle')}</h3>
-                <p className="text-muted-foreground">{recap}</p>
-            </div>
+            <Card className="m-4 border-b text-sm">
+                <CardHeader className='p-4'>
+                    <CardTitle className='text-base'>{t('sessionRecapTitle')}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0 text-muted-foreground">
+                    <p>{recap}</p>
+                </CardContent>
+            </Card>
         )}
       <TextSelectionPopover>
         <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>

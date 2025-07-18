@@ -1,11 +1,16 @@
+// src/components/layout/AppLayout.tsx
 "use client";
 
-import DialogueInterface from '@/components/dialogue/DialogueInterface';
-import InventoryAndJournalPanel from '@/components/panels/InventoryAndJournalPanel';
-import StatsPanel from '@/components/panels/StatsPanel';
 import { useGame } from '@/context/GameContext';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { PanelLeft, Swords, ScrollText } from 'lucide-react';
+import StatsPanel from '@/components/panels/StatsPanel';
+import DialogueInterface from '@/components/dialogue/DialogueInterface';
+import InventoryAndJournalPanel from '@/components/panels/InventoryAndJournalPanel';
+import AppHeader from './AppHeader';
 
 export default function AppLayout() {
   const { gameReady } = useGame();
@@ -22,12 +27,27 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-[280px_1fr_320px] h-screen bg-background text-foreground font-body overflow-hidden">
-      <StatsPanel />
-      <main className="flex-1 flex flex-col h-screen overflow-hidden">
-        <DialogueInterface />
-      </main>
-      <InventoryAndJournalPanel />
+    <div className="h-screen bg-background text-foreground font-body overflow-hidden">
+      {/* Mobile Header */}
+      <div className="md:hidden">
+        <AppHeader />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-[280px_1fr_320px] h-screen md:h-auto">
+        {/* Desktop Left Panel */}
+        <div className="hidden md:flex">
+          <StatsPanel />
+        </div>
+        
+        <main className="flex-1 flex flex-col overflow-hidden h-full md:h-screen">
+          <DialogueInterface />
+        </main>
+        
+        {/* Desktop Right Panel */}
+        <div className="hidden md:flex">
+          <InventoryAndJournalPanel />
+        </div>
+      </div>
     </div>
   );
 }

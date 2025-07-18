@@ -36,9 +36,9 @@ export default function InventoryAndJournalPanel() {
   }
 
   return (
-    <aside className="bg-card hidden md:flex flex-col h-screen border-l">
+    <aside className="bg-card flex flex-col h-full border-l">
       <Tabs defaultValue="inventory" className="flex flex-col h-full">
-        <div className="p-2">
+        <div className="p-2 border-b">
           <TabsList className="grid w-full grid-cols-2 bg-background">
             <TabsTrigger value="inventory">
               <Swords className="w-4 h-4 mr-2" />
@@ -51,7 +51,7 @@ export default function InventoryAndJournalPanel() {
           </TabsList>
         </div>
         <TabsContent value="inventory" className="flex-1 overflow-hidden m-0">
-          <ScrollArea className="h-full px-4">
+          <ScrollArea className="h-full p-4">
             {inventory.length > 0 ? (
               <ul className="space-y-2">
                 {inventory.map(item => (
@@ -80,7 +80,7 @@ export default function InventoryAndJournalPanel() {
           </ScrollArea>
         </TabsContent>
         <TabsContent value="journal" className="flex-1 overflow-hidden m-0">
-          <ScrollArea className="h-full px-4">
+          <ScrollArea className="h-full p-4">
             {journal.length > 0 ? (
               <ul className="space-y-3">
                 {journal.map(entry => (

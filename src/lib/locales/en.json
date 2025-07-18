@@ -62,5 +62,7 @@
   "setup.defaults.characterDescription": "A cunning rogue with a quick wit and even quicker fingers.",
   "setup.defaults.characterBackground": "Grew up an orphan on the streets, learned to survive by their wits alone.",
   "setup.defaults.gameSetting": "A classic medieval fantasy world with sprawling kingdoms, dark forests, and ancient ruins.",
-  "setup.defaults.openingScene": "You awaken in a dimly lit tavern, the smell of stale ale and sawdust filling your nostrils. Your head throbs, a dull reminder of last night's revelry. Across the room, a cloaked figure in a shadowy corner seems to be watching you. A half-empty mug of ale sits on the table before you."
+  "setup.defaults.openingScene": "You awaken in a dimly lit tavern, the smell of stale ale and sawdust filling your nostrils. Your head throbs, a dull reminder of last night's revelry. Across the room, a cloaked figure in a shadowy corner seems to be watching you. A half-empty mug of ale sits on the table before you.",
+  "mobile.characterSheet": "Character Sheet",
+  "mobile.inventoryAndJournal": "Inventory & Journal"
 }
