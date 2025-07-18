@@ -21,7 +21,7 @@ import { suggestPlayerAttribute } from '@/ai/flows/suggest-player-attribute';
 import { toast } from '@/hooks/use-toast';
 
 const StatItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) => (
-  <div className="flex items-center justify-between text-sm">
+  <div className="flex items-center justify-between text-sm w-full">
     <div className="flex items-center gap-3 text-muted-foreground">
       <Icon className="w-4 h-4" />
       <span>{label}</span>
