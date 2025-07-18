@@ -24,9 +24,11 @@ const GenerateSetupSuggestionOutputSchema = z.object({
   suggestion: z.string().describe('The AI\'s conversational response and suggestions to the player.'),
   updatedFields: z.object({
     characterName: z.string().optional(),
+    characterClass: z.string().optional(),
     characterDescription: z.string().optional(),
     characterBackground: z.string().optional(),
     gameSetting: z.string().optional(),
+    openingScene: z.string().optional(),
   }).optional().describe('Fields to update in the setup UI based on the suggestion. Only include fields that have changed.'),
 });
 export type GenerateSetupSuggestionOutput = z.infer<typeof GenerateSetupSuggestionOutputSchema>;

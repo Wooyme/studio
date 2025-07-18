@@ -51,19 +51,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [gameReady, setGameReady] = useState(false);
 
   useEffect(() => {
-    if (stats.name && stats.attributes.length > 0 && !gameReady) {
+    const hasInitialSetup = stats.name && stats.attributes.length > 0 && dialogue.length > 0;
+    if (hasInitialSetup && !gameReady) {
       setGameReady(true);
-      if (dialogue.length === 0) {
-        setDialogue([
-          {
-            id: nanoid(),
-            speaker: 'DM',
-            text: t('initialDialogue'),
-          }
-        ]);
-      }
     }
-  }, [stats, gameReady, dialogue.length, t]);
+  }, [stats, dialogue, gameReady]);
 
   useEffect(() => {
     if (!gameReady && pathname !== '/setup') {

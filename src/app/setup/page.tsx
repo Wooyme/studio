@@ -15,12 +15,16 @@ import { Loader2, Send, Wand2, Languages } from 'lucide-react';
 import Image from 'next/image';
 import type { PlayerAttribute } from '@/lib/types';
 import { useLocalization } from '@/context/LocalizationContext';
+import * as LucideIcons from 'lucide-react';
+import type { LucideProps } from 'lucide-react';
 
 interface SetupState {
   characterName: string;
   characterDescription: string;
+  characterClass: string;
   characterBackground: string;
   gameSetting: string;
+  openingScene: string;
   characterImage: string;
   attributes: PlayerAttribute[];
 }
@@ -30,16 +34,26 @@ interface ChatMessage {
     text: string;
 }
 
+const getIcon = (name: string): React.FC<LucideProps> => {
+    const Icon = (LucideIcons as any)[name];
+    if (Icon) {
+      return Icon;
+    }
+    return LucideIcons.HelpCircle; 
+};
+
 export default function SetupPage() {
   const router = useRouter();
-  const { setStats } = useGame();
+  const { setStats, setDialogue } = useGame();
   const { t, locale, setLocale } = useLocalization();
 
   const [setupState, setSetupState] = useState<SetupState>({
     characterName: '',
     characterDescription: '',
+    characterClass: '',
     characterBackground: '',
     gameSetting: '',
+    openingScene: '',
     characterImage: 'https://placehold.co/512x512.png',
     attributes: [
       { id: '1', name: 'STR', value: 10, icon: 'Swords' },
@@ -60,8 +74,10 @@ export default function SetupPage() {
         ...prev,
         characterName: t('setup.defaults.characterName'),
         characterDescription: t('setup.defaults.characterDescription'),
+        characterClass: t('setup.defaults.characterClass'),
         characterBackground: t('setup.defaults.characterBackground'),
         gameSetting: t('setup.defaults.gameSetting'),
+        openingScene: t('setup.defaults.openingScene'),
     }));
     setChatHistory([
         { speaker: 'AI', text: t('setup.ai.initialMessage') }
@@ -74,6 +90,13 @@ export default function SetupPage() {
 
   const handleInputChange = (field: keyof Omit<SetupState, 'attributes' | 'characterImage'>, value: string) => {
     setSetupState(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAttributeChange = (id: string, value: number) => {
+    setSetupState(prev => ({
+        ...prev,
+        attributes: prev.attributes.map(attr => attr.id === id ? { ...attr, value } : attr)
+    }));
   };
 
   const handleChatSubmit = async (e: React.FormEvent) => {
@@ -109,15 +132,15 @@ export default function SetupPage() {
   };
 
   const startGame = () => {
-    setStats(prev => ({
-        ...prev,
+    setStats({
         name: setupState.characterName,
         attributes: setupState.attributes,
-        class: 'Adventurer', // Default class
+        class: setupState.characterClass,
         level: 1,
         hp: { current: 20, max: 20 },
         ac: 10,
-    }));
+    });
+    setDialogue([{ speaker: 'DM', text: setupState.openingScene, id: 'initial' }]);
     router.push('/');
   };
 
@@ -147,9 +170,15 @@ export default function SetupPage() {
                     <Image src={setupState.characterImage} alt="Character Portrait" width={512} height={512} className="rounded-lg border aspect-square object-cover" data-ai-hint="fantasy character portrait" />
                 </div>
                 <div className="space-y-4 w-full md:w-2/3">
-                    <div className="space-y-1">
-                      <Label htmlFor="characterName">{t('setup.form.characterNameLabel')}</Label>
-                      <Input id="characterName" value={setupState.characterName} onChange={(e) => handleInputChange('characterName', e.target.value)} />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <Label htmlFor="characterName">{t('setup.form.characterNameLabel')}</Label>
+                        <Input id="characterName" value={setupState.characterName} onChange={(e) => handleInputChange('characterName', e.target.value)} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label htmlFor="characterClass">{t('setup.form.characterClassLabel')}</Label>
+                        <Input id="characterClass" value={setupState.characterClass} onChange={(e) => handleInputChange('characterClass', e.target.value)} />
+                      </div>
                     </div>
                     <div className="space-y-1">
                       <Label htmlFor="characterDescription">{t('setup.form.characterDescriptionLabel')}</Label>
@@ -157,6 +186,30 @@ export default function SetupPage() {
                     </div>
                 </div>
              </div>
+            
+            <div className="space-y-4">
+                <Label>{t('setup.form.attributesLabel')}</Label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {setupState.attributes.map(attr => {
+                        const Icon = getIcon(attr.icon);
+                        return (
+                            <div key={attr.id} className="space-y-1">
+                                <Label htmlFor={`attr-${attr.id}`} className="flex items-center gap-2 text-muted-foreground">
+                                    <Icon className="h-4 w-4" />
+                                    {attr.name}
+                                </Label>
+                                <Input 
+                                    id={`attr-${attr.id}`} 
+                                    type="number" 
+                                    value={attr.value} 
+                                    onChange={(e) => handleAttributeChange(attr.id, parseInt(e.target.value) || 0)}
+                                    className="w-full"
+                                />
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
 
             <div className="space-y-1">
               <Label htmlFor="characterBackground">{t('setup.form.characterBackgroundLabel')}</Label>
@@ -165,6 +218,10 @@ export default function SetupPage() {
             <div className="space-y-1">
               <Label htmlFor="gameSetting">{t('setup.form.gameSettingLabel')}</Label>
               <Textarea id="gameSetting" value={setupState.gameSetting} onChange={(e) => handleInputChange('gameSetting', e.target.value)} rows={5}/>
+            </div>
+            <div className="space-y-1">
+                <Label htmlFor="openingScene">{t('setup.form.openingSceneLabel')}</Label>
+                <Textarea id="openingScene" value={setupState.openingScene} onChange={(e) => handleInputChange('openingScene', e.target.value)} rows={5}/>
             </div>
 
              <div className="lg:col-span-2 mt-6 flex justify-end">
