@@ -41,5 +41,22 @@
   "toast.suggestionReady.title": "Suggestion Ready",
   "toast.suggestionReady.description": "The AI has a suggestion for a new attribute.",
   "toast.suggestionError.title": "Suggestion Failed",
-  "toast.suggestionError.description": "Could not get an attribute suggestion at this time."
+  "toast.suggestionError.description": "Could not get an attribute suggestion at this time.",
+  "setup.title": "Create Your Adventure",
+  "setup.description": "Design your character and world. Use the AI assistant on the right to help you brainstorm ideas!",
+  "setup.form.title": "Character & World Setup",
+  "setup.form.characterImageLabel": "Character Image",
+  "setup.form.characterNameLabel": "Character Name",
+  "setup.form.characterDescriptionLabel": "Character Description",
+  "setup.form.characterBackgroundLabel": "Character Background",
+  "setup.form.gameSettingLabel": "Game Setting",
+  "setup.buttons.startGame": "Start Game",
+  "setup.ai.title": "AI Assistant",
+  "setup.ai.inputPlaceholder": "e.g., 'Suggest a darker background for my rogue'",
+  "setup.ai.initialMessage": "Hello! I'm here to help you build your character and world. What are we creating today?",
+  "setup.ai.errorMessage": "Sorry, I couldn't process that. Please try again.",
+  "setup.defaults.characterName": "Aethelred",
+  "setup.defaults.characterDescription": "A cunning rogue with a quick wit and even quicker fingers.",
+  "setup.defaults.characterBackground": "Grew up an orphan on the streets, learned to survive by their wits alone.",
+  "setup.defaults.gameSetting": "A classic medieval fantasy world with sprawling kingdoms, dark forests, and ancient ruins."
 }

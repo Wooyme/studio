@@ -41,5 +41,22 @@
   "toast.suggestionReady.title": "建议已就绪",
   "toast.suggestionReady.description": "AI对你的新属性有一个建议。",
   "toast.suggestionError.title": "建议失败",
-  "toast.suggestionError.description": "目前无法获取属性建议。"
+  "toast.suggestionError.description": "目前无法获取属性建议。",
+  "setup.title": "创建你的冒险",
+  "setup.description": "设计你的角色和世界。使用右侧的 AI 助手来帮助你构思！",
+  "setup.form.title": "角色与世界设定",
+  "setup.form.characterImageLabel": "角色形象",
+  "setup.form.characterNameLabel": "角色姓名",
+  "setup.form.characterDescriptionLabel": "角色描述",
+  "setup.form.characterBackgroundLabel": "角色背景",
+  "setup.form.gameSettingLabel": "游戏设定",
+  "setup.buttons.startGame": "开始游戏",
+  "setup.ai.title": "AI 助手",
+  "setup.ai.inputPlaceholder": "例如，“为我的盗贼建议一个更黑暗的背景”",
+  "setup.ai.initialMessage": "你好！我在这里帮助你构建角色和世界。我们今天创造些什么呢？",
+  "setup.ai.errorMessage": "抱歉，我无法处理该请求。请重试。",
+  "setup.defaults.characterName": "艾瑟瑞德",
+  "setup.defaults.characterDescription": "一个狡猾的盗贼，机智过人，手指也同样敏捷。",
+  "setup.defaults.characterBackground": "在街头长大的孤儿，靠自己的智慧学会了生存。",
+  "setup.defaults.gameSetting": "一个经典的中世纪奇幻世界，有广阔的王国、黑暗的森林和古老的废墟。"
 }

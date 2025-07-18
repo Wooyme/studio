@@ -1,6 +1,7 @@
+// src/app/setup/page.tsx
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import { generateSetupSuggestion } from '@/ai/flows/generate-setup-suggestion';
 import { Loader2, Send, Wand2 } from 'lucide-react';
 import Image from 'next/image';
 import type { PlayerAttribute } from '@/lib/types';
+import { useLocalization } from '@/context/LocalizationContext';
 
 interface SetupState {
   characterName: string;
@@ -31,12 +33,13 @@ interface ChatMessage {
 export default function SetupPage() {
   const router = useRouter();
   const { setStats, addAttribute } = useGame();
-  
+  const { t, locale } = useLocalization();
+
   const [setupState, setSetupState] = useState<SetupState>({
-    characterName: 'Aethelred',
-    characterDescription: 'A cunning rogue with a quick wit and even quicker fingers.',
-    characterBackground: 'Grew up an orphan on the streets, learned to survive by their wits alone.',
-    gameSetting: 'A classic medieval fantasy world with sprawling kingdoms, dark forests, and ancient ruins.',
+    characterName: '',
+    characterDescription: '',
+    characterBackground: '',
+    gameSetting: '',
     characterImage: 'https://placehold.co/512x512.png',
     attributes: [
       { id: '1', name: 'STR', value: 10, icon: 'Swords' },
@@ -52,7 +55,20 @@ export default function SetupPage() {
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleInputChange = (field: keyof SetupState, value: string) => {
+  useEffect(() => {
+    setSetupState(prev => ({
+        ...prev,
+        characterName: t('setup.defaults.characterName'),
+        characterDescription: t('setup.defaults.characterDescription'),
+        characterBackground: t('setup.defaults.characterBackground'),
+        gameSetting: t('setup.defaults.gameSetting'),
+    }));
+    setChatHistory([
+        { speaker: 'AI', text: t('setup.ai.initialMessage') }
+    ]);
+  }, [t]);
+
+  const handleInputChange = (field: keyof Omit<SetupState, 'attributes' | 'characterImage'>, value: string) => {
     setSetupState(prev => ({ ...prev, [field]: value }));
   };
 
@@ -69,6 +85,7 @@ export default function SetupPage() {
       const result = await generateSetupSuggestion({
         currentSetup: JSON.stringify(setupState),
         playerRequest: userInput,
+        language: locale,
       });
 
       const newAiMessage: ChatMessage = { speaker: 'AI', text: result.suggestion };
@@ -80,7 +97,7 @@ export default function SetupPage() {
 
     } catch (error) {
       console.error("Error with AI suggestion:", error);
-      const errorMessage: ChatMessage = { speaker: 'AI', text: "Sorry, I couldn't process that. Please try again." };
+      const errorMessage: ChatMessage = { speaker: 'AI', text: t('setup.ai.errorMessage') };
       setChatHistory(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
@@ -93,7 +110,6 @@ export default function SetupPage() {
         name: setupState.characterName,
         attributes: setupState.attributes,
     }));
-    // TODO: A way to pass more context like background and setting to the game.
     router.push('/');
   };
 
@@ -101,52 +117,50 @@ export default function SetupPage() {
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8 font-body">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="lg:col-span-2">
-            <h1 className="text-4xl font-headline font-bold text-primary mb-2">Create Your Adventure</h1>
-            <p className="text-muted-foreground">Design your character and world. Use the AI assistant on the right to help you brainstorm ideas!</p>
+            <h1 className="text-4xl font-headline font-bold text-primary mb-2">{t('setup.title')}</h1>
+            <p className="text-muted-foreground">{t('setup.description')}</p>
         </div>
         
-        {/* Left Panel: Setup Fields */}
         <Card>
           <CardHeader>
-            <CardTitle>Character & World Setup</CardTitle>
+            <CardTitle>{t('setup.form.title')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
              <div className="flex flex-col md:flex-row gap-6 items-start">
                 <div className="space-y-1 w-full md:w-1/3">
-                    <Label htmlFor="characterImage">Character Image</Label>
+                    <Label htmlFor="characterImage">{t('setup.form.characterImageLabel')}</Label>
                     <Image src={setupState.characterImage} alt="Character Portrait" width={512} height={512} className="rounded-lg border aspect-square object-cover" data-ai-hint="fantasy character portrait" />
                 </div>
                 <div className="space-y-4 w-full md:w-2/3">
                     <div className="space-y-1">
-                      <Label htmlFor="characterName">Character Name</Label>
+                      <Label htmlFor="characterName">{t('setup.form.characterNameLabel')}</Label>
                       <Input id="characterName" value={setupState.characterName} onChange={(e) => handleInputChange('characterName', e.target.value)} />
                     </div>
                     <div className="space-y-1">
-                      <Label htmlFor="characterDescription">Character Description</Label>
+                      <Label htmlFor="characterDescription">{t('setup.form.characterDescriptionLabel')}</Label>
                       <Textarea id="characterDescription" value={setupState.characterDescription} onChange={(e) => handleInputChange('characterDescription', e.target.value)} rows={3}/>
                     </div>
                 </div>
              </div>
 
             <div className="space-y-1">
-              <Label htmlFor="characterBackground">Character Background</Label>
+              <Label htmlFor="characterBackground">{t('setup.form.characterBackgroundLabel')}</Label>
               <Textarea id="characterBackground" value={setupState.characterBackground} onChange={(e) => handleInputChange('characterBackground', e.target.value)} rows={5}/>
             </div>
             <div className="space-y-1">
-              <Label htmlFor="gameSetting">Game Setting</Label>
+              <Label htmlFor="gameSetting">{t('setup.form.gameSettingLabel')}</Label>
               <Textarea id="gameSetting" value={setupState.gameSetting} onChange={(e) => handleInputChange('gameSetting', e.target.value)} rows={5}/>
             </div>
 
              <div className="lg:col-span-2 mt-6 flex justify-end">
-                <Button onClick={startGame} size="lg">Start Game</Button>
+                <Button onClick={startGame} size="lg">{t('setup.buttons.startGame')}</Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Right Panel: AI Chat */}
         <Card className="flex flex-col">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2"><Wand2/> AI Assistant</CardTitle>
+            <CardTitle className="flex items-center gap-2"><Wand2/> {t('setup.ai.title')}</CardTitle>
           </CardHeader>
           <CardContent className="flex-1 flex flex-col gap-4 overflow-hidden">
             <ScrollArea className="flex-1 h-96 p-4 border rounded-md">
@@ -162,7 +176,7 @@ export default function SetupPage() {
                         <div className="flex justify-start">
                             <div className="p-3 rounded-lg bg-muted flex items-center gap-2">
                                 <Loader2 className="h-4 w-4 animate-spin"/>
-                                <span className="text-sm text-muted-foreground">AI is thinking...</span>
+                                <span className="text-sm text-muted-foreground">{t('dmThinking')}</span>
                             </div>
                         </div>
                     )}
@@ -170,7 +184,7 @@ export default function SetupPage() {
             </ScrollArea>
             <form onSubmit={handleChatSubmit} className="flex gap-2">
               <Input 
-                placeholder="e.g., 'Suggest a darker background for my rogue'" 
+                placeholder={t('setup.ai.inputPlaceholder')} 
                 value={userInput} 
                 onChange={e => setUserInput(e.target.value)}
                 disabled={isLoading}

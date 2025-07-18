@@ -16,6 +16,7 @@ import {z} from 'genkit';
 const GenerateSetupSuggestionInputSchema = z.object({
   currentSetup: z.string().describe('A JSON string representing the current character and world setup so far.'),
   playerRequest: z.string().describe('The player’s request or question to the AI assistant.'),
+  language: z.string().describe('The language for the response (e.g., "en", "zh").'),
 });
 export type GenerateSetupSuggestionInput = z.infer<typeof GenerateSetupSuggestionInputSchema>;
 
@@ -41,7 +42,7 @@ const prompt = ai.definePrompt({
   prompt: `You are an AI assistant helping a player create their character and world for a tabletop role-playing game.
 The player will provide their current setup and a request. Your job is to provide creative suggestions and, if applicable, update the setup fields with new content.
 
-Your response should be conversational and helpful. You can ask clarifying questions or provide a few different ideas.
+Your response should be conversational and helpful, in the following language: {{{language}}}. You can ask clarifying questions or provide a few different ideas.
 
 If the user's request directly implies a change to one of the fields (e.g., "Write a background for me", "Suggest a name for my character"), you should populate the 'updatedFields' object with the new content. Otherwise, you can leave it empty and just provide a conversational suggestion.
 
