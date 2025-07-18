@@ -8,17 +8,18 @@ import { BookMarked, ScrollText, Swords, Sparkles, Loader2, Send } from 'lucide-
 import { Button } from '../ui/button';
 import { suggestInventoryItemUse } from '@/ai/flows/suggest-inventory-item-use';
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent } from '../ui/card';
 import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
 import { discussPlotProgression } from '@/ai/flows/discuss-plot-progression';
+import { cn } from '@/lib/utils';
 
 interface DiscussionMessage {
     speaker: 'Player' | 'AI';
     text: string;
 }
 
-export default function InventoryAndJournalPanel() {
+export default function InventoryAndJournalPanel({ className }: { className?: string }) {
   const { inventory, journal, dialogue, stats } = useGame();
   const { t, locale } = useLocalization();
   const [suggestion, setSuggestion] = useState<string | null>(null);
@@ -75,7 +76,7 @@ export default function InventoryAndJournalPanel() {
   }
 
   return (
-    <aside className="bg-card flex flex-col h-full border-l">
+    <aside className={cn("bg-card flex-col h-full border-l", className)}>
       <Tabs defaultValue="inventory" className="flex flex-col h-full">
         <div className="p-2 border-b">
           <TabsList className="grid w-full grid-cols-2 bg-background">

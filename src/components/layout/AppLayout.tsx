@@ -3,10 +3,7 @@
 
 import { useGame } from '@/context/GameContext';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { PanelLeft, Swords, ScrollText } from 'lucide-react';
+import { useEffect } from 'react';
 import StatsPanel from '@/components/panels/StatsPanel';
 import DialogueInterface from '@/components/dialogue/DialogueInterface';
 import InventoryAndJournalPanel from '@/components/panels/InventoryAndJournalPanel';
@@ -44,9 +41,7 @@ export default function AppLayout() {
         </main>
         
         {/* Desktop Right Panel */}
-        <div className="hidden md:flex">
-          <InventoryAndJournalPanel />
-        </div>
+        <InventoryAndJournalPanel className="hidden md:flex" />
       </div>
     </div>
   );
