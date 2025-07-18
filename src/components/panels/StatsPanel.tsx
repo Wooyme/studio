@@ -1,3 +1,4 @@
+// src/components/panels/StatsPanel.tsx
 "use client";
 
 import { useGame } from '@/context/GameContext';
@@ -10,7 +11,6 @@ import { Button } from '../ui/button';
 import { Languages, Plus, Sparkles, Pencil, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Input } from '../ui/input';
-import { Label } from '../ui/label';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,19 +56,14 @@ export default function StatsPanel() {
 
   const form = useForm<AttributeFormData>({
     resolver: zodResolver(attributeSchema),
-    defaultValues: {
-      name: "",
-      value: 10,
-      icon: "HelpCircle",
-    },
+    defaultValues: { name: "", value: 10, icon: "HelpCircle" },
   });
 
-  const toggleLocale = () => {
-    setLocale(locale === 'en' ? 'zh' : 'en');
-  };
+  const toggleLocale = () => setLocale(locale === 'en' ? 'zh' : 'en');
 
   const handleOpenDialog = (attribute: PlayerAttribute | null = null) => {
     setEditingAttribute(attribute);
+    setSuggestion(null);
     if (attribute) {
       form.reset({ name: attribute.name, value: attribute.value, icon: attribute.icon });
     } else {
