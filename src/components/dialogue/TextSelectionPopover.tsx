@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverAnchor } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button';
 import { useGame } from '@/context/GameContext';
 import { toast } from '@/hooks/use-toast';
-import { BookPlus, ScrollPlus } from 'lucide-react';
+import { BookPlus, ScrollText } from 'lucide-react';
 
 export default function TextSelectionPopover({ children }: { children: ReactNode }) {
   const { addInventoryItem, addJournalEntry } = useGame();
@@ -17,8 +17,8 @@ export default function TextSelectionPopover({ children }: { children: ReactNode
     const selection = window.getSelection();
     const text = selection?.toString().trim() ?? '';
 
-    if (text) {
-      const range = selection?.getRangeAt(0);
+    if (text && selection) {
+      const range = selection.getRangeAt(0);
       if (range) {
         const rect = range.getBoundingClientRect();
         setPosition({
@@ -66,7 +66,7 @@ export default function TextSelectionPopover({ children }: { children: ReactNode
               Add to Inventory
             </Button>
             <Button variant="ghost" size="sm" onClick={handleAddToJournal}>
-              <ScrollPlus className="h-4 w-4 mr-2" />
+              <ScrollText className="h-4 w-4 mr-2" />
               Add to Journal
             </Button>
           </div>

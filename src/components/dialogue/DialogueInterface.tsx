@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { generateDmDialogue } from '@/ai/flows/generate-dm-dialogue';
 import { nanoid } from 'nanoid';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import TextSelectionPopover from './TextSelectionPopover';
 import { Loader2 } from 'lucide-react';
 import { summarizeSessionRecap } from '@/ai/flows/summarize-session-recap';
