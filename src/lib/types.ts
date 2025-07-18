@@ -30,3 +30,5 @@ export interface DialogueMessage {
   text: string;
   choices?: string[];
 }
+
+export type SupportedLocale = 'en' | 'zh';

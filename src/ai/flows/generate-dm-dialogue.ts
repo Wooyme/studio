@@ -17,8 +17,9 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 const GenerateDmDialogueInputSchema = z.object({
-  playerChoice: z.string().describe('The player\u2019s choice in the dialogue interface.'),
+  playerChoice: z.string().describe('The player’s choice in the dialogue interface.'),
   gameState: z.string().describe('The current game state, including player stats, inventory, and entries.'),
+  language: z.string().describe('The language for the response (e.g., "en", "zh").'),
 });
 export type GenerateDmDialogueInput = z.infer<typeof GenerateDmDialogueInputSchema>;
 
@@ -37,6 +38,8 @@ const generateDmDialoguePrompt = ai.definePrompt({
   input: {schema: GenerateDmDialogueInputSchema},
   output: {schema: GenerateDmDialogueOutputSchema},
   prompt: `You are an AI Dungeon Master for a tabletop role-playing game. A player has made a choice, and you must generate the next part of the story, including the DM's dialogue and a description of the scenario.
+
+Respond in the following language: {{{language}}}.
 
 Player's Choice: {{{playerChoice}}}
 

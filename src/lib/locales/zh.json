@@ -1,0 +1,28 @@
+
+{
+  "stats.class": "职业",
+  "stats.health": "生命值",
+  "stats.ac": "护甲等级",
+  "textSelectionHint": "在对话中选择文本，可以将其添加到你的物品栏或日志中。",
+  "adventureTitle": "冒险开始",
+  "buttons.getRecap": "获取回顾",
+  "sessionRecapTitle": "本节回顾：",
+  "dmThinking": "地下城主正在思考...",
+  "inputPlaceholder": "你接下来做什么？",
+  "tabs.inventory": "物品栏",
+  "tabs.journal": "日志",
+  "inventoryEmpty": "你的物品栏是空的。",
+  "journalEmpty": "你的日志是空的。",
+  "buttons.getSuggestion": "获取建议",
+  "buttons.thinking": "思考中...",
+  "suggestionError": "暂时无法获取建议。",
+  "recapError": "暂时无法生成回顾。",
+  "connectionError": "连接似乎中断了，请重试。",
+  "buttons.addToInventory": "添加到物品栏",
+  "buttons.addToJournal": "添加到日志",
+  "toast.itemAdded.title": "物品已添加",
+  "toast.itemAdded.description": "\"{item}\" 已添加到你的物品栏。",
+  "toast.entryAdded.title": "条目已添加",
+  "toast.entryAdded.description": "一个新的条目已添加到你的日志。",
+  "initialDialogue": "你在昏暗的酒馆中醒来，空气中弥漫着陈腐的麦酒和锯末的味道。你的头隐隐作痛，提醒着你昨夜的狂欢。房间的另一头，一个披着斗篷的身影在阴暗的角落里似乎正注视着你。你面前的桌上放着半杯麦酒。"
+}

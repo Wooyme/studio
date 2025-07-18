@@ -1,8 +1,10 @@
+// src/context/GameContext.tsx
 "use client";
 
-import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction } from 'react';
+import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction, useMemo } from 'react';
 import type { PlayerStats, InventoryItem, JournalEntry, DialogueMessage } from '@/lib/types';
 import { nanoid } from 'nanoid';
+import { useLocalization } from './LocalizationContext';
 
 interface GameContextType {
   stats: PlayerStats;
@@ -38,15 +40,17 @@ const initialStats: PlayerStats = {
   ],
 };
 
-const initialDialogue: DialogueMessage[] = [
-  {
-    id: nanoid(),
-    speaker: 'DM',
-    text: "You awaken in a dimly lit tavern, the smell of stale ale and sawdust filling your nostrils. Your head throbs, a dull reminder of last night's revelry. Across the room, a cloaked figure in a shadowy corner seems to be watching you. A half-empty mug of ale sits on the table before you.",
-  }
-]
-
 export function GameProvider({ children }: { children: ReactNode }) {
+  const { t, locale } = useLocalization();
+  
+  const initialDialogue: DialogueMessage[] = useMemo(() => [
+    {
+      id: nanoid(),
+      speaker: 'DM',
+      text: t('initialDialogue'),
+    }
+  ], [t]);
+
   const [stats, setStats] = useState<PlayerStats>(initialStats);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [journal, setJournal] = useState<JournalEntry[]>([]);

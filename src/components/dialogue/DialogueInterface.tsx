@@ -1,6 +1,7 @@
 "use client";
 
 import { useGame } from '@/context/GameContext';
+import { useLocalization } from '@/context/LocalizationContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { generateDmDialogue } from '@/ai/flows/generate-dm-dialogue';
@@ -13,6 +14,7 @@ import { Input } from '../ui/input';
 
 export default function DialogueInterface() {
   const { dialogue, addDialogueMessage, stats, inventory, journal, isLoading, setIsLoading } = useGame();
+  const { t, locale, translations } = useLocalization();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [recap, setRecap] = useState<string | null>(null);
   const [isRecapping, setIsRecapping] = useState(false);
@@ -31,10 +33,14 @@ export default function DialogueInterface() {
     setIsLoading(true);
     setInputValue('');
 
-    const gameState = JSON.stringify({ stats, inventory, journal });
+    const translatedStats = {
+      ...stats,
+      class: t('stats.class'),
+    };
+    const gameState = JSON.stringify({ stats: translatedStats, inventory, journal });
 
     try {
-      const result = await generateDmDialogue({ playerChoice: input, gameState });
+      const result = await generateDmDialogue({ playerChoice: input, gameState, language: locale });
       
       const combinedText = `${result.dialogue}\n\n${result.scenario}`;
       
@@ -47,7 +53,7 @@ export default function DialogueInterface() {
       console.error('Error generating DM dialogue:', error);
       addDialogueMessage({
         speaker: 'DM',
-        text: 'The connection flickers. Please try again.',
+        text: t('connectionError'),
       });
     } finally {
       setIsLoading(false);
@@ -68,7 +74,7 @@ export default function DialogueInterface() {
         setRecap(result.summary);
       } catch (error) {
         console.error("Failed to get recap:", error);
-        setRecap("Could not generate a recap at this time.");
+        setRecap(t('recapError'));
       }
       setIsRecapping(false);
   }
@@ -76,15 +82,15 @@ export default function DialogueInterface() {
   return (
     <div className="flex flex-col h-full bg-background border-x">
        <div className="p-4 border-b flex justify-between items-center">
-        <h2 className="text-xl font-headline font-bold">The Adventure</h2>
+        <h2 className="text-xl font-headline font-bold">{t('adventureTitle')}</h2>
         <Button onClick={handleRecap} variant="outline" size="sm" disabled={isRecapping}>
             {isRecapping ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Get Recap
+            {t('buttons.getRecap')}
         </Button>
        </div>
        {recap && (
             <div className="p-4 bg-card border-b text-sm">
-                <h3 className="font-bold mb-2">Session Recap:</h3>
+                <h3 className="font-bold mb-2">{t('sessionRecapTitle')}</h3>
                 <p className="text-muted-foreground">{recap}</p>
             </div>
         )}
@@ -102,7 +108,7 @@ export default function DialogueInterface() {
               <div className="flex items-start">
                   <div className="rounded-lg px-4 py-2 max-w-xl bg-card flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">The DM is thinking...</span>
+                    <span className="text-sm text-muted-foreground">{t('dmThinking')}</span>
                   </div>
               </div>
             )}
@@ -114,7 +120,7 @@ export default function DialogueInterface() {
           <Input
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            placeholder="What do you do?"
+            placeholder={t('inputPlaceholder')}
             className="flex-1"
             disabled={isLoading}
           />

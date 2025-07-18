@@ -1,0 +1,28 @@
+
+{
+  "stats.class": "Class",
+  "stats.health": "Health",
+  "stats.ac": "Armor Class",
+  "textSelectionHint": "Select text in the dialogue to add items to your inventory or notes to your journal.",
+  "adventureTitle": "The Adventure",
+  "buttons.getRecap": "Get Recap",
+  "sessionRecapTitle": "Session Recap:",
+  "dmThinking": "The DM is thinking...",
+  "inputPlaceholder": "What do you do?",
+  "tabs.inventory": "Inventory",
+  "tabs.journal": "Journal",
+  "inventoryEmpty": "Your inventory is empty.",
+  "journalEmpty": "Your journal is empty.",
+  "buttons.getSuggestion": "Get Suggestion",
+  "buttons.thinking": "Thinking...",
+  "suggestionError": "Could not get a suggestion at this time.",
+  "recapError": "Could not generate a recap at this time.",
+  "connectionError": "The connection flickers. Please try again.",
+  "buttons.addToInventory": "Add to Inventory",
+  "buttons.addToJournal": "Add to Journal",
+  "toast.itemAdded.title": "Item Added",
+  "toast.itemAdded.description": "\"{item}\" was added to your inventory.",
+  "toast.entryAdded.title": "Entry Added",
+  "toast.entryAdded.description": "A new entry was added to your journal.",
+  "initialDialogue": "You awaken in a dimly lit tavern, the smell of stale ale and sawdust filling your nostrils. Your head throbs, a dull reminder of last night's revelry. Across the room, a cloaked figure in a shadowy corner seems to be watching you. A half-empty mug of ale sits on the table before you."
+}

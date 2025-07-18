@@ -1,6 +1,7 @@
 "use client";
 
 import { useGame } from '@/context/GameContext';
+import { useLocalization } from '@/context/LocalizationContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { BookMarked, ScrollText, Swords, Sparkles } from 'lucide-react';
@@ -11,6 +12,7 @@ import { Card, CardContent } from '../ui/card';
 
 export default function InventoryAndJournalPanel() {
   const { inventory, journal, dialogue } = useGame();
+  const { t } = useLocalization();
   const [suggestion, setSuggestion] = useState<string | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
 
@@ -27,7 +29,7 @@ export default function InventoryAndJournalPanel() {
             setSuggestion(res.suggestedUse);
         } catch (error) {
             console.error("Failed to get suggestion:", error);
-            setSuggestion("Could not get a suggestion at this time.");
+            setSuggestion(t('suggestionError'));
         }
     }
     setIsSuggesting(false);
@@ -40,11 +42,11 @@ export default function InventoryAndJournalPanel() {
           <TabsList className="grid w-full grid-cols-2 bg-background">
             <TabsTrigger value="inventory">
               <Swords className="w-4 h-4 mr-2" />
-              Inventory
+              {t('tabs.inventory')}
             </TabsTrigger>
             <TabsTrigger value="journal">
               <ScrollText className="w-4 h-4 mr-2" />
-              Journal
+              {t('tabs.journal')}
             </TabsTrigger>
           </TabsList>
         </div>
@@ -60,12 +62,12 @@ export default function InventoryAndJournalPanel() {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground text-center pt-8">Your inventory is empty.</p>
+              <p className="text-sm text-muted-foreground text-center pt-8">{t('inventoryEmpty')}</p>
             )}
              <div className="mt-4">
                 <Button onClick={handleSuggestion} disabled={isSuggesting || inventory.length === 0} className="w-full">
                     <Sparkles className="w-4 h-4 mr-2"/>
-                    {isSuggesting ? 'Thinking...' : 'Get Suggestion'}
+                    {isSuggesting ? t('buttons.thinking') : t('buttons.getSuggestion')}
                 </Button>
                 {suggestion && (
                     <Card className="mt-4 bg-background">
@@ -88,7 +90,7 @@ export default function InventoryAndJournalPanel() {
                 ))}
               </ul>
             ) : (
-              <p className="text-sm text-muted-foreground text-center pt-8">Your journal is empty.</p>
+              <p className="text-sm text-muted-foreground text-center pt-8">{t('journalEmpty')}</p>
             )}
           </ScrollArea>
         </TabsContent>
