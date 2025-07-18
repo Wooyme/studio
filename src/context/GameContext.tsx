@@ -1,7 +1,7 @@
 // src/context/GameContext.tsx
 "use client";
 
-import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction, useMemo, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import type { PlayerStats, InventoryItem, JournalEntry, DialogueMessage, PlayerAttribute } from '@/lib/types';
 import { nanoid } from 'nanoid';
@@ -31,10 +31,10 @@ const GameContext = createContext<GameContextType | undefined>(undefined);
 
 const initialStats: PlayerStats = {
   name: '',
-  class: 'Rogue',
-  level: 1,
-  hp: { current: 10, max: 10 },
-  ac: 14,
+  class: '',
+  level: 0,
+  hp: { current: 0, max: 0 },
+  ac: 0,
   attributes: [],
 };
 
@@ -51,19 +51,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [gameReady, setGameReady] = useState(false);
 
   useEffect(() => {
-    if (stats.name && stats.attributes.length > 0) {
+    if (stats.name && stats.attributes.length > 0 && !gameReady) {
       setGameReady(true);
-      setDialogue([
-        {
-          id: nanoid(),
-          speaker: 'DM',
-          text: t('initialDialogue'),
-        }
-      ]);
-    } else {
-      setGameReady(false);
+      if (dialogue.length === 0) {
+        setDialogue([
+          {
+            id: nanoid(),
+            speaker: 'DM',
+            text: t('initialDialogue'),
+          }
+        ]);
+      }
     }
-  }, [stats, t]);
+  }, [stats, gameReady, dialogue.length, t]);
 
   useEffect(() => {
     if (!gameReady && pathname !== '/setup') {
@@ -126,7 +126,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   if (!gameReady && pathname !== '/setup') {
-    return null; // or a loading spinner
+    // Render a loading state or nothing, but the context provider needs to be there for setup page
+    return (
+        <GameContext.Provider value={value}>
+            {pathname === '/setup' ? children : null}
+        </GameContext.Provider>
+    );
   }
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useGame } from '@/context/GameContext';
 import { generateSetupSuggestion } from '@/ai/flows/generate-setup-suggestion';
-import { Loader2, Send, Wand2 } from 'lucide-react';
+import { Loader2, Send, Wand2, Languages } from 'lucide-react';
 import Image from 'next/image';
 import type { PlayerAttribute } from '@/lib/types';
 import { useLocalization } from '@/context/LocalizationContext';
@@ -32,8 +32,8 @@ interface ChatMessage {
 
 export default function SetupPage() {
   const router = useRouter();
-  const { setStats, addAttribute } = useGame();
-  const { t, locale } = useLocalization();
+  const { setStats } = useGame();
+  const { t, locale, setLocale } = useLocalization();
 
   const [setupState, setSetupState] = useState<SetupState>({
     characterName: '',
@@ -67,6 +67,10 @@ export default function SetupPage() {
         { speaker: 'AI', text: t('setup.ai.initialMessage') }
     ]);
   }, [t]);
+
+  const toggleLocale = () => {
+    setLocale(locale === 'en' ? 'zh' : 'en');
+  };
 
   const handleInputChange = (field: keyof Omit<SetupState, 'attributes' | 'characterImage'>, value: string) => {
     setSetupState(prev => ({ ...prev, [field]: value }));
@@ -109,6 +113,10 @@ export default function SetupPage() {
         ...prev,
         name: setupState.characterName,
         attributes: setupState.attributes,
+        class: 'Adventurer', // Default class
+        level: 1,
+        hp: { current: 20, max: 20 },
+        ac: 10,
     }));
     router.push('/');
   };
@@ -117,8 +125,15 @@ export default function SetupPage() {
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8 font-body">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="lg:col-span-2">
-            <h1 className="text-4xl font-headline font-bold text-primary mb-2">{t('setup.title')}</h1>
-            <p className="text-muted-foreground">{t('setup.description')}</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h1 className="text-4xl font-headline font-bold text-primary mb-2">{t('setup.title')}</h1>
+                <p className="text-muted-foreground">{t('setup.description')}</p>
+              </div>
+               <Button variant="ghost" size="icon" onClick={toggleLocale} title="Switch Language">
+                <Languages className="h-6 w-6" />
+              </Button>
+            </div>
         </div>
         
         <Card>
