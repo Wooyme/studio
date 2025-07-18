@@ -5,16 +5,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { generateDmDialogue } from '@/ai/flows/generate-dm-dialogue';
 import { nanoid } from 'nanoid';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, FormEvent } from 'react';
 import TextSelectionPopover from './TextSelectionPopover';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Send } from 'lucide-react';
 import { summarizeSessionRecap } from '@/ai/flows/summarize-session-recap';
+import { Input } from '../ui/input';
 
 export default function DialogueInterface() {
   const { dialogue, addDialogueMessage, stats, inventory, journal, isLoading, setIsLoading } = useGame();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [recap, setRecap] = useState<string | null>(null);
   const [isRecapping, setIsRecapping] = useState(false);
+  const [inputValue, setInputValue] = useState('');
 
   useEffect(() => {
     if (scrollAreaRef.current) {
@@ -22,22 +24,23 @@ export default function DialogueInterface() {
     }
   }, [dialogue]);
 
-  const handleChoice = async (choice: string) => {
-    addDialogueMessage({ speaker: 'Player', text: choice });
+  const handlePlayerInput = async (input: string) => {
+    if (!input.trim()) return;
+
+    addDialogueMessage({ speaker: 'Player', text: input });
     setIsLoading(true);
+    setInputValue('');
 
     const gameState = JSON.stringify({ stats, inventory, journal });
 
     try {
-      const result = await generateDmDialogue({ playerChoice: choice, gameState });
+      const result = await generateDmDialogue({ playerChoice: input, gameState });
       
       const combinedText = `${result.dialogue}\n\n${result.scenario}`;
       
       addDialogueMessage({
         speaker: 'DM',
         text: combinedText,
-        // These choices are static as the AI doesn't generate them.
-        choices: ["What do I see?", "Check my belongings.", "Say nothing.", "Continue forward."],
       });
 
     } catch (error) {
@@ -45,11 +48,15 @@ export default function DialogueInterface() {
       addDialogueMessage({
         speaker: 'DM',
         text: 'The connection flickers. Please try again.',
-        choices: dialogue.findLast(m => m.speaker === 'DM')?.choices,
       });
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    handlePlayerInput(inputValue);
   };
   
   const handleRecap = async () => {
@@ -65,8 +72,6 @@ export default function DialogueInterface() {
       }
       setIsRecapping(false);
   }
-
-  const lastMessage = dialogue[dialogue.length - 1];
 
   return (
     <div className="flex flex-col h-full bg-background border-x">
@@ -105,15 +110,18 @@ export default function DialogueInterface() {
         </ScrollArea>
       </TextSelectionPopover>
       <div className="p-4 border-t bg-card">
-        {lastMessage && lastMessage.speaker === 'DM' && !isLoading && (
-          <div className="grid grid-cols-2 gap-3">
-            {lastMessage.choices?.map(choice => (
-              <Button key={nanoid()} variant="outline" onClick={() => handleChoice(choice)} className="justify-start text-left h-auto">
-                {choice}
-              </Button>
-            ))}
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+          <Input
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="What do you do?"
+            className="flex-1"
+            disabled={isLoading}
+          />
+          <Button type="submit" size="icon" disabled={isLoading || !inputValue.trim()}>
+            <Send />
+          </Button>
+        </form>
       </div>
     </div>
   );

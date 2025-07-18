@@ -41,7 +41,6 @@ const initialDialogue: DialogueMessage[] = [
     id: nanoid(),
     speaker: 'DM',
     text: "You awaken in a dimly lit tavern, the smell of stale ale and sawdust filling your nostrils. Your head throbs, a dull reminder of last night's revelry. Across the room, a cloaked figure in a shadowy corner seems to be watching you. A half-empty mug of ale sits on the table before you.",
-    choices: ["Approach the cloaked figure.", "Order another drink.", "Look around the tavern.", "Leave the tavern."]
   }
 ]
 
