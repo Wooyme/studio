@@ -12,29 +12,32 @@ export default function TextSelectionPopover({ children }: { children: ReactNode
   const { addInventoryItem, addJournalEntry } = useGame();
   const { t } = useLocalization();
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState({ top: 0, left: 0, width: 0, height: 0 });
+  const [position, setPosition] = useState<DOMRect | undefined>(undefined);
   const selectedTextRef = useRef('');
+  const popoverTriggerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseUp = useCallback(() => {
-    const selection = window.getSelection();
-    const text = selection?.toString().trim() ?? '';
+    setTimeout(() => {
+        const selection = window.getSelection();
+        const text = selection?.toString().trim() ?? '';
 
-    if (text && selection) {
-      const range = selection.getRangeAt(0);
-      if (range) {
-        const rect = range.getBoundingClientRect();
-        setPosition({
-          top: rect.top + window.scrollY,
-          left: rect.left + window.scrollX,
-          width: rect.width,
-          height: rect.height,
-        });
-        selectedTextRef.current = text;
-        setOpen(true);
-      }
-    } else {
-      setOpen(false);
-    }
+        if (text && selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        if (range) {
+            const rect = range.getBoundingClientRect();
+            // Check if the selection is not empty and has a size
+            if (rect.width > 0 || rect.height > 0) {
+                setPosition(rect);
+                selectedTextRef.current = text;
+                setOpen(true);
+            } else {
+                setOpen(false);
+            }
+        }
+        } else {
+        setOpen(false);
+        }
+    }, 0);
   }, []);
 
   const handleAddToInventory = () => {
@@ -49,16 +52,32 @@ export default function TextSelectionPopover({ children }: { children: ReactNode
     setOpen(false);
   };
   
+  const getTriggerStyle = (): CSSProperties => {
+    if (!position || !popoverTriggerRef.current) return { display: 'none' };
+    
+    const parentRect = popoverTriggerRef.current.parentElement?.getBoundingClientRect();
+    if (!parentRect) return { display: 'none' };
+
+    return {
+        position: 'absolute',
+        top: `${position.top - parentRect.top}px`,
+        left: `${position.left - parentRect.left}px`,
+        width: `${position.width}px`,
+        height: `${position.height}px`,
+        pointerEvents: 'none',
+    }
+  }
+
   return (
     <div onMouseUp={handleMouseUp} className="flex-1 overflow-hidden relative">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
             <div
-            className="absolute"
-            style={{ top: `${position.top}px`, left: `${position.left}px`, width: `${position.width}px`, height: `${position.height}px`, pointerEvents: 'none' }}
+                ref={popoverTriggerRef}
+                style={getTriggerStyle()}
             />
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-1" style={{ position: 'absolute', top: `${position.top - 50}px`, left: `${position.left + position.width / 2}px`, transform: 'translateX(-50%)' }}>
+        <PopoverContent className="w-auto p-1" side="top" align="center">
           <div className="flex gap-1">
             <Button variant="ghost" size="sm" onClick={handleAddToInventory}>
               <BookPlus className="h-4 w-4 mr-2" />
