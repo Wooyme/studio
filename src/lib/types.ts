@@ -1,3 +1,10 @@
+export interface PlayerAttribute {
+  id: string;
+  name: string;
+  value: number;
+  icon: string;
+}
+
 export interface PlayerStats {
   name: string;
   class: string;
@@ -7,11 +14,7 @@ export interface PlayerStats {
     max: number;
   };
   ac: number;
-  attributes: {
-    name: string;
-    value: number;
-    icon: string;
-  }[];
+  attributes: PlayerAttribute[];
 }
 
 export interface InventoryItem {

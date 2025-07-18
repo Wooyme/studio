@@ -24,5 +24,22 @@
   "toast.itemAdded.description": "\"{item}\" 已添加到你的物品栏。",
   "toast.entryAdded.title": "条目已添加",
   "toast.entryAdded.description": "一个新的条目已添加到你的日志。",
-  "initialDialogue": "你在昏暗的酒馆中醒来，空气中弥漫着陈腐的麦酒和锯末的味道。你的头隐隐作痛，提醒着你昨夜的狂欢。房间的另一头，一个披着斗篷的身影在阴暗的角落里似乎正注视着你。你面前的桌上放着半杯麦酒。"
+  "initialDialogue": "你在昏暗的酒馆中醒来，空气中弥漫着陈腐的麦酒和锯末的味道。你的头隐隐作痛，提醒着你昨夜的狂欢。房间的另一头，一个披着斗篷的身影在阴暗的角落里似乎正注视着你。你面前的桌上放着半杯麦酒。",
+  "buttons.addAttribute": "添加属性",
+  "buttons.getAttrSuggestion": "获取AI建议",
+  "buttons.saveChanges": "保存更改",
+  "attributeModal.addTitle": "添加新属性",
+  "attributeModal.editTitle": "编辑属性",
+  "attributeModal.description": "为你的角色卡添加一个新的自定义属性。",
+  "attributeModal.nameLabel": "属性名称",
+  "attributeModal.valueLabel": "属性值",
+  "attributeModal.iconLabel": "图标名称 (来自 lucide-react)",
+  "suggestion.title": "建议",
+  "buttons.addThisAttribute": "添加此属性",
+  "toast.attributeAdded.title": "属性已添加",
+  "toast.attributeAdded.description": "\"{attribute}\" 已添加到你的角色卡。",
+  "toast.suggestionReady.title": "建议已就绪",
+  "toast.suggestionReady.description": "AI对你的新属性有一个建议。",
+  "toast.suggestionError.title": "建议失败",
+  "toast.suggestionError.description": "目前无法获取属性建议。"
 }

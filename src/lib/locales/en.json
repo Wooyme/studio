@@ -24,5 +24,22 @@
   "toast.itemAdded.description": "\"{item}\" was added to your inventory.",
   "toast.entryAdded.title": "Entry Added",
   "toast.entryAdded.description": "A new entry was added to your journal.",
-  "initialDialogue": "You awaken in a dimly lit tavern, the smell of stale ale and sawdust filling your nostrils. Your head throbs, a dull reminder of last night's revelry. Across the room, a cloaked figure in a shadowy corner seems to be watching you. A half-empty mug of ale sits on the table before you."
+  "initialDialogue": "You awaken in a dimly lit tavern, the smell of stale ale and sawdust filling your nostrils. Your head throbs, a dull reminder of last night's revelry. Across the room, a cloaked figure in a shadowy corner seems to be watching you. A half-empty mug of ale sits on the table before you.",
+  "buttons.addAttribute": "Add Attribute",
+  "buttons.getAttrSuggestion": "Get AI Suggestion",
+  "buttons.saveChanges": "Save Changes",
+  "attributeModal.addTitle": "Add New Attribute",
+  "attributeModal.editTitle": "Edit Attribute",
+  "attributeModal.description": "Add a new custom attribute to your character sheet.",
+  "attributeModal.nameLabel": "Attribute Name",
+  "attributeModal.valueLabel": "Attribute Value",
+  "attributeModal.iconLabel": "Icon Name (from lucide-react)",
+  "suggestion.title": "Suggestion",
+  "buttons.addThisAttribute": "Add This Attribute",
+  "toast.attributeAdded.title": "Attribute Added",
+  "toast.attributeAdded.description": "\"{attribute}\" was added to your character sheet.",
+  "toast.suggestionReady.title": "Suggestion Ready",
+  "toast.suggestionReady.description": "The AI has a suggestion for a new attribute.",
+  "toast.suggestionError.title": "Suggestion Failed",
+  "toast.suggestionError.description": "Could not get an attribute suggestion at this time."
 }

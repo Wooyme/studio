@@ -2,7 +2,7 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction, useMemo } from 'react';
-import type { PlayerStats, InventoryItem, JournalEntry, DialogueMessage } from '@/lib/types';
+import type { PlayerStats, InventoryItem, JournalEntry, DialogueMessage, PlayerAttribute } from '@/lib/types';
 import { nanoid } from 'nanoid';
 import { useLocalization } from './LocalizationContext';
 
@@ -20,6 +20,9 @@ interface GameContextType {
   addDialogueMessage: (message: Omit<DialogueMessage, 'id'>) => void;
   isLoading: boolean;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
+  addAttribute: (attribute: Omit<PlayerAttribute, 'id'>) => void;
+  updateAttribute: (id: string, newAttribute: PlayerAttribute) => void;
+  deleteAttribute: (id: string) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -31,12 +34,12 @@ const initialStats: PlayerStats = {
   hp: { current: 10, max: 10 },
   ac: 14,
   attributes: [
-    { name: 'STR', value: 10, icon: 'Swords' },
-    { name: 'DEX', value: 16, icon: 'Dices' },
-    { name: 'CON', value: 12, icon: 'Heart' },
-    { name: 'INT', value: 13, icon: 'Brain' },
-    { name: 'WIS', value: 11, icon: 'BookOpen' },
-    { name: 'CHA', value: 14, icon: 'Smile' },
+    { id: nanoid(), name: 'STR', value: 10, icon: 'Swords' },
+    { id: nanoid(), name: 'DEX', value: 16, icon: 'Dices' },
+    { id: nanoid(), name: 'CON', value: 12, icon: 'Heart' },
+    { id: nanoid(), name: 'INT', value: 13, icon: 'Brain' },
+    { id: nanoid(), name: 'WIS', value: 11, icon: 'BookOpen' },
+    { id: nanoid(), name: 'CHA', value: 14, icon: 'Smile' },
   ],
 };
 
@@ -69,6 +72,28 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setDialogue(prev => [...prev, { ...message, id: nanoid() }]);
   }
 
+  const addAttribute = (attribute: Omit<PlayerAttribute, 'id'>) => {
+    const newAttribute = { ...attribute, id: nanoid() };
+    setStats(prevStats => ({
+      ...prevStats,
+      attributes: [...prevStats.attributes, newAttribute]
+    }));
+  };
+
+  const updateAttribute = (id: string, newAttribute: PlayerAttribute) => {
+    setStats(prevStats => ({
+      ...prevStats,
+      attributes: prevStats.attributes.map(attr => attr.id === id ? newAttribute : attr)
+    }));
+  };
+
+  const deleteAttribute = (id: string) => {
+    setStats(prevStats => ({
+      ...prevStats,
+      attributes: prevStats.attributes.filter(attr => attr.id !== id)
+    }));
+  };
+
   const value = {
     stats,
     setStats,
@@ -83,6 +108,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     addDialogueMessage,
     isLoading,
     setIsLoading,
+    addAttribute,
+    updateAttribute,
+    deleteAttribute,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
