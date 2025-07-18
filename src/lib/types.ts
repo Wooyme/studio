@@ -7,12 +7,11 @@ export interface PlayerStats {
     max: number;
   };
   ac: number;
-  strength: number;
-  dexterity: number;
-  constitution: number;
-  intelligence: number;
-  wisdom: number;
-  charisma: number;
+  attributes: {
+    name: string;
+    value: number;
+    icon: string;
+  }[];
 }
 
 export interface InventoryItem {

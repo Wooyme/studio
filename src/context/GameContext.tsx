@@ -28,12 +28,14 @@ const initialStats: PlayerStats = {
   level: 1,
   hp: { current: 10, max: 10 },
   ac: 14,
-  strength: 10,
-  dexterity: 16,
-  constitution: 12,
-  intelligence: 13,
-  wisdom: 11,
-  charisma: 14,
+  attributes: [
+    { name: 'STR', value: 10, icon: 'Swords' },
+    { name: 'DEX', value: 16, icon: 'Dices' },
+    { name: 'CON', value: 12, icon: 'Heart' },
+    { name: 'INT', value: 13, icon: 'Brain' },
+    { name: 'WIS', value: 11, icon: 'BookOpen' },
+    { name: 'CHA', value: 14, icon: 'Smile' },
+  ],
 };
 
 const initialDialogue: DialogueMessage[] = [
