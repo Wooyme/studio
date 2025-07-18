@@ -37,6 +37,8 @@ interface GameContextType {
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
+const LOCAL_STORAGE_KEY_DEBUG_PROMPT = 'tabletopai_debug_prompt';
+
 const initialStats: PlayerStats = {
   name: '',
   class: '',
@@ -72,6 +74,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
         router.replace('/setup');
     }
   }, [gameReady, pathname, router]);
+
+  useEffect(() => {
+    const savedPrompt = localStorage.getItem(LOCAL_STORAGE_KEY_DEBUG_PROMPT);
+    if (savedPrompt) {
+      setDebugSystemPrompt(savedPrompt);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (debugSystemPrompt) {
+      localStorage.setItem(LOCAL_STORAGE_KEY_DEBUG_PROMPT, debugSystemPrompt);
+    } else {
+      localStorage.removeItem(LOCAL_STORAGE_KEY_DEBUG_PROMPT);
+    }
+  }, [debugSystemPrompt]);
 
   const addInventoryItem = (name: string) => {
     setInventory(prev => [...prev, { id: nanoid(), name }]);
