@@ -23,6 +23,8 @@ interface GameContextType {
   dialogue: DialogueMessage[];
   setDialogue: Dispatch<SetStateAction<DialogueMessage[]>>;
   addDialogueMessage: (message: Omit<DialogueMessage, 'id'>) => void;
+  updateDialogueMessage: (id: string, text: string) => void;
+  deleteDialogueMessage: (id: string) => void;
   isLoading: boolean;
   setIsLoading: Dispatch<SetStateAction<boolean>>;
   addAttribute: (attribute: Omit<PlayerAttribute, 'id'>) => void;
@@ -99,6 +101,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setDialogue(prev => [...prev, { ...message, id: nanoid() }]);
   }
 
+  const updateDialogueMessage = (id: string, text: string) => {
+    setDialogue(prev => prev.map(msg => msg.id === id ? { ...msg, text } : msg));
+  };
+
+  const deleteDialogueMessage = (id: string) => {
+    setDialogue(prev => prev.filter(msg => msg.id !== id));
+  };
+
   const addAttribute = (attribute: Omit<PlayerAttribute, 'id'>) => {
     const newAttribute = { ...attribute, id: nanoid() };
     setStats(prevStats => ({
@@ -137,6 +147,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dialogue,
     setDialogue,
     addDialogueMessage,
+    updateDialogueMessage,
+    deleteDialogueMessage,
     isLoading,
     setIsLoading,
     addAttribute,

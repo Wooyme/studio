@@ -73,5 +73,8 @@
   "debug.title": "调试模式：系统提示覆盖",
   "debug.description": "在下方输入系统提示。此提示将在调试模式激活时覆盖所有AI流程的默认系统提示。清除文本区域可恢复默认行为。",
   "debug.placeholder": "例如，你是一位莎士比亚时代的地下城主...",
-  "debug.clear": "清除并重置"
+  "debug.clear": "清除并重置",
+  "editMode.label": "编辑模式",
+  "editMode.dialogTitle": "编辑对话",
+  "editMode.dialogDescription": "在下方修改所选的对话条目。这将永久影响故事。"
 }

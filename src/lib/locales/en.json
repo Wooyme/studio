@@ -73,5 +73,8 @@
   "debug.title": "Debug Mode: System Prompt Override",
   "debug.description": "Enter a system prompt below. This prompt will override the default system prompt for all AI flows while debug mode is active. Clear the text area to revert to default behavior.",
   "debug.placeholder": "e.g., You are a Shakespearean-era dungeon master...",
-  "debug.clear": "Clear and Reset"
+  "debug.clear": "Clear and Reset",
+  "editMode.label": "Edit Mode",
+  "editMode.dialogTitle": "Edit Dialogue",
+  "editMode.dialogDescription": "Make changes to the selected dialogue entry below. This will affect the story permanently."
 }
