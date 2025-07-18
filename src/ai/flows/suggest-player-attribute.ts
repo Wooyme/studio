@@ -10,10 +10,12 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type { DebuggableFlow } from '@/lib/types';
 
 const SuggestPlayerAttributeInputSchema = z.object({
   dialogueHistory: z.string().describe("The history of the dialogue in the game."),
   existingAttributes: z.array(z.string()).describe("The player's existing attributes."),
+  systemPrompt: z.string().optional().describe("An optional system prompt to override the default."),
 });
 export type SuggestPlayerAttributeInput = z.infer<typeof SuggestPlayerAttributeInputSchema>;
 
@@ -27,11 +29,19 @@ export async function suggestPlayerAttribute(input: SuggestPlayerAttributeInput)
   return suggestPlayerAttributeFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'suggestPlayerAttributePrompt',
-  input: {schema: SuggestPlayerAttributeInputSchema},
-  output: {schema: SuggestPlayerAttributeOutputSchema},
-  prompt: `You are an AI assistant for a tabletop role-playing game. Based on the recent dialogue history, suggest a new attribute for the player. The attribute should be relevant to the events in the dialogue.
+const suggestPlayerAttributeFlow: DebuggableFlow<SuggestPlayerAttributeInput, SuggestPlayerAttributeOutput> = ai.defineFlow(
+  {
+    name: 'suggestPlayerAttributeFlow',
+    inputSchema: SuggestPlayerAttributeInputSchema,
+    outputSchema: SuggestPlayerAttributeOutputSchema,
+  },
+  async input => {
+    const prompt = ai.definePrompt({
+      name: 'suggestPlayerAttributePrompt',
+      input: {schema: SuggestPlayerAttributeInputSchema},
+      output: {schema: SuggestPlayerAttributeOutputSchema},
+      system: input.systemPrompt,
+      prompt: `You are an AI assistant for a tabletop role-playing game. Based on the recent dialogue history, suggest a new attribute for the player. The attribute should be relevant to the events in the dialogue.
 
 Existing attributes: {{#each existingAttributes}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}. Do not suggest an existing attribute.
 
@@ -39,15 +49,8 @@ Dialogue History:
 {{{dialogueHistory}}}
 
 Suggest a new attribute and provide a brief reason why it would be useful for the player.`,
-});
+    });
 
-const suggestPlayerAttributeFlow = ai.defineFlow(
-  {
-    name: 'suggestPlayerAttributeFlow',
-    inputSchema: SuggestPlayerAttributeInputSchema,
-    outputSchema: SuggestPlayerAttributeOutputSchema,
-  },
-  async input => {
     const {output} = await prompt(input);
     return output!;
   }

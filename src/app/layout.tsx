@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { Providers } from './providers';
+import DebugPanel from '@/components/debug/DebugPanel';
 
 export const metadata: Metadata = {
   title: 'TabletopAI',
@@ -25,6 +26,7 @@ export default function RootLayout({
         <Providers>
           {children}
           <Toaster />
+          <DebugPanel />
         </Providers>
       </body>
     </html>

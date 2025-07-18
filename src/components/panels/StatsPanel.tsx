@@ -48,7 +48,7 @@ const attributeSchema = z.object({
 type AttributeFormData = z.infer<typeof attributeSchema>;
 
 export default function StatsPanel() {
-  const { stats, dialogue, updateAttribute, addAttribute, deleteAttribute } = useGame();
+  const { stats, dialogue, updateAttribute, addAttribute, deleteAttribute, debugSystemPrompt } = useGame();
   const { t, setLocale, locale } = useLocalization();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAttribute, setEditingAttribute] = useState<PlayerAttribute | null>(null);
@@ -89,7 +89,8 @@ export default function StatsPanel() {
     try {
       const res = await suggestPlayerAttribute({
         dialogueHistory,
-        existingAttributes: stats.attributes.map(a => a.name)
+        existingAttributes: stats.attributes.map(a => a.name),
+        systemPrompt: debugSystemPrompt || undefined,
       });
       setSuggestion(res);
       toast({ title: t('toast.suggestionReady.title'), description: t('toast.suggestionReady.description') });

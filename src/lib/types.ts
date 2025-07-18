@@ -35,3 +35,5 @@ export interface DialogueMessage {
 }
 
 export type SupportedLocale = 'en' | 'zh';
+
+export type DebuggableFlow<I, O> = (input: I) => Promise<O>;

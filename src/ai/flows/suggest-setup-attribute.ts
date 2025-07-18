@@ -9,11 +9,13 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type { DebuggableFlow } from '@/lib/types';
 
 const SuggestSetupAttributeInputSchema = z.object({
   characterClass: z.string().describe("The character's class."),
   characterDescription: z.string().describe("The character's description."),
   existingAttributes: z.array(z.string()).describe("The player's existing attributes."),
+  systemPrompt: z.string().optional().describe("An optional system prompt to override the default."),
 });
 export type SuggestSetupAttributeInput = z.infer<typeof SuggestSetupAttributeInputSchema>;
 
@@ -27,11 +29,19 @@ export async function suggestSetupAttribute(input: SuggestSetupAttributeInput): 
   return suggestSetupAttributeFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'suggestSetupAttributePrompt',
-  input: {schema: SuggestSetupAttributeInputSchema},
-  output: {schema: SuggestSetupAttributeOutputSchema},
-  prompt: `You are an AI assistant for a tabletop role-playing game. Based on the character's class and description, suggest a new, thematic attribute for the player.
+const suggestSetupAttributeFlow: DebuggableFlow<SuggestSetupAttributeInput, SuggestSetupAttributeOutput> = ai.defineFlow(
+  {
+    name: 'suggestSetupAttributeFlow',
+    inputSchema: SuggestSetupAttributeInputSchema,
+    outputSchema: SuggestSetupAttributeOutputSchema,
+  },
+  async input => {
+    const prompt = ai.definePrompt({
+      name: 'suggestSetupAttributePrompt',
+      input: {schema: SuggestSetupAttributeInputSchema},
+      output: {schema: SuggestSetupAttributeOutputSchema},
+      system: input.systemPrompt,
+      prompt: `You are an AI assistant for a tabletop role-playing game. Based on the character's class and description, suggest a new, thematic attribute for the player.
 
 Character Class: {{{characterClass}}}
 Character Description: {{{characterDescription}}}
@@ -39,15 +49,8 @@ Character Description: {{{characterDescription}}}
 Existing attributes: {{#each existingAttributes}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}. Do not suggest an existing attribute.
 
 Suggest a new, single-word attribute and provide a brief reason why it would be a good fit for this character.`,
-});
+    });
 
-const suggestSetupAttributeFlow = ai.defineFlow(
-  {
-    name: 'suggestSetupAttributeFlow',
-    inputSchema: SuggestSetupAttributeInputSchema,
-    outputSchema: SuggestSetupAttributeOutputSchema,
-  },
-  async input => {
     const {output} = await prompt(input);
     return output!;
   }

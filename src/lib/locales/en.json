@@ -69,5 +69,9 @@
   "discussPlot.inputPlaceholder": "Ask about the plot...",
   "editModal.editItemTitle": "Edit Inventory Item",
   "editModal.editEntryTitle": "Edit Journal Entry",
-  "editModal.description": "Make changes to your item or journal entry below."
+  "editModal.description": "Make changes to your item or journal entry below.",
+  "debug.title": "Debug Mode: System Prompt Override",
+  "debug.description": "Enter a system prompt below. This prompt will override the default system prompt for all AI flows while debug mode is active. Clear the text area to revert to default behavior.",
+  "debug.placeholder": "e.g., You are a Shakespearean-era dungeon master...",
+  "debug.clear": "Clear and Reset"
 }

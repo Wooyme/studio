@@ -33,6 +33,7 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
     deleteInventoryItem,
     updateJournalEntry,
     deleteJournalEntry,
+    debugSystemPrompt,
    } = useGame();
   const { t, locale } = useLocalization();
   const [suggestion, setSuggestion] = useState<string | null>(null);
@@ -53,7 +54,8 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
         try {
             const res = await suggestInventoryItemUse({
                 inventory: inventory.map(i => i.name),
-                currentSituation: lastMessage.text
+                currentSituation: lastMessage.text,
+                systemPrompt: debugSystemPrompt || undefined,
             });
             setSuggestion(res.suggestedUse);
         } catch (error) {
@@ -80,6 +82,7 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
         playerQuery: discussionInput,
         gameState,
         language: locale,
+        systemPrompt: debugSystemPrompt || undefined,
       });
       const newAiMessage: DiscussionMessage = { speaker: 'AI', text: result.dmResponse };
       setDiscussionHistory(prev => [...prev, newAiMessage]);

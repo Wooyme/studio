@@ -60,7 +60,7 @@ type AttributeFormData = z.infer<typeof attributeSchema>;
 
 export default function SetupPage() {
   const router = useRouter();
-  const { setStats, setDialogue } = useGame();
+  const { setStats, setDialogue, debugSystemPrompt } = useGame();
   const { t, locale, setLocale } = useLocalization();
 
   const [setupState, setSetupState] = useState<SetupState>({
@@ -147,6 +147,7 @@ export default function SetupPage() {
         currentSetup: JSON.stringify(setupState),
         playerRequest: userInput,
         language: locale,
+        systemPrompt: debugSystemPrompt || undefined,
       });
       const newAiMessage: ChatMessage = { speaker: 'AI', text: result.suggestion };
       setChatHistory(prev => [...prev, newAiMessage]);
@@ -169,7 +170,8 @@ export default function SetupPage() {
       const res = await suggestSetupAttribute({
         characterClass: setupState.characterClass,
         characterDescription: setupState.characterDescription,
-        existingAttributes: setupState.attributes.map(a => a.name)
+        existingAttributes: setupState.attributes.map(a => a.name),
+        systemPrompt: debugSystemPrompt || undefined,
       });
       setAttrSuggestion(res);
       toast({ title: t('toast.suggestionReady.title'), description: t('toast.suggestionReady.description') });

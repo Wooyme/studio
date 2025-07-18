@@ -9,10 +9,12 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type { DebuggableFlow } from '@/lib/types';
 
 const SuggestInventoryItemUseInputSchema = z.object({
   inventory: z.array(z.string()).describe('The player\'s current inventory items.'),
   currentSituation: z.string().describe('The current situation the player is in.'),
+  systemPrompt: z.string().optional().describe("An optional system prompt to override the default."),
 });
 export type SuggestInventoryItemUseInput = z.infer<typeof SuggestInventoryItemUseInputSchema>;
 
@@ -25,20 +27,21 @@ export async function suggestInventoryItemUse(input: SuggestInventoryItemUseInpu
   return suggestInventoryItemUseFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'suggestInventoryItemUsePrompt',
-  input: {schema: SuggestInventoryItemUseInputSchema},
-  output: {schema: SuggestInventoryItemUseOutputSchema},
-  prompt: `You are a Dungeon Master in a tabletop role-playing game. The player is currently in the following situation: {{{currentSituation}}}. The player has the following items in their inventory: {{#each inventory}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}. Suggest a creative way the player could use one or more of the items in their inventory to overcome the current situation.`,
-});
-
-const suggestInventoryItemUseFlow = ai.defineFlow(
+const suggestInventoryItemUseFlow: DebuggableFlow<SuggestInventoryItemUseInput, SuggestInventoryItemUseOutput> = ai.defineFlow(
   {
     name: 'suggestInventoryItemUseFlow',
     inputSchema: SuggestInventoryItemUseInputSchema,
     outputSchema: SuggestInventoryItemUseOutputSchema,
   },
   async input => {
+    const prompt = ai.definePrompt({
+      name: 'suggestInventoryItemUsePrompt',
+      input: {schema: SuggestInventoryItemUseInputSchema},
+      output: {schema: SuggestInventoryItemUseOutputSchema},
+      system: input.systemPrompt,
+      prompt: `You are a Dungeon Master in a tabletop role-playing game. The player is currently in the following situation: {{{currentSituation}}}. The player has the following items in their inventory: {{#each inventory}}{{{this}}}{{#unless @last}}, {{/unless}}{{/each}}. Suggest a creative way the player could use one or more of the items in their inventory to overcome the current situation.`,
+    });
+
     const {output} = await prompt(input);
     return output!;
   }

@@ -14,7 +14,7 @@ import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 
 export default function DialogueInterface() {
-  const { dialogue, addDialogueMessage, stats, inventory, journal, isLoading, setIsLoading } = useGame();
+  const { dialogue, addDialogueMessage, stats, inventory, journal, isLoading, setIsLoading, debugSystemPrompt } = useGame();
   const { t, locale, translations } = useLocalization();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [recap, setRecap] = useState<string | null>(null);
@@ -41,7 +41,12 @@ export default function DialogueInterface() {
     const gameState = JSON.stringify({ stats: translatedStats, inventory, journal });
 
     try {
-      const result = await generateDmDialogue({ playerChoice: input, gameState, language: locale });
+      const result = await generateDmDialogue({ 
+        playerChoice: input, 
+        gameState, 
+        language: locale,
+        systemPrompt: debugSystemPrompt || undefined,
+      });
       
       const combinedText = `${result.dialogue}\n\n${result.scenario}`;
       
@@ -71,7 +76,10 @@ export default function DialogueInterface() {
       setRecap(null);
       const sessionLog = dialogue.map(d => `${d.speaker}: ${d.text}`).join('\n');
       try {
-        const result = await summarizeSessionRecap({ sessionLog });
+        const result = await summarizeSessionRecap({ 
+          sessionLog,
+          systemPrompt: debugSystemPrompt || undefined,
+        });
         setRecap(result.summary);
       } catch (error) {
         console.error("Failed to get recap:", error);

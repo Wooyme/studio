@@ -12,11 +12,13 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
+import type { DebuggableFlow } from '@/lib/types';
 
 const GenerateSetupSuggestionInputSchema = z.object({
   currentSetup: z.string().describe('A JSON string representing the current character and world setup so far.'),
   playerRequest: z.string().describe('The player’s request or question to the AI assistant.'),
   language: z.string().describe('The language for the response (e.g., "en", "zh").'),
+  systemPrompt: z.string().optional().describe("An optional system prompt to override the default."),
 });
 export type GenerateSetupSuggestionInput = z.infer<typeof GenerateSetupSuggestionInputSchema>;
 
@@ -37,11 +39,19 @@ export async function generateSetupSuggestion(input: GenerateSetupSuggestionInpu
   return generateSetupSuggestionFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'generateSetupSuggestionPrompt',
-  input: {schema: GenerateSetupSuggestionInputSchema},
-  output: {schema: GenerateSetupSuggestionOutputSchema},
-  prompt: `You are an AI assistant helping a player create their character and world for a tabletop role-playing game.
+const generateSetupSuggestionFlow: DebuggableFlow<GenerateSetupSuggestionInput, GenerateSetupSuggestionOutput> = ai.defineFlow(
+  {
+    name: 'generateSetupSuggestionFlow',
+    inputSchema: GenerateSetupSuggestionInputSchema,
+    outputSchema: GenerateSetupSuggestionOutputSchema,
+  },
+  async input => {
+    const prompt = ai.definePrompt({
+      name: 'generateSetupSuggestionPrompt',
+      input: {schema: GenerateSetupSuggestionInputSchema},
+      output: {schema: GenerateSetupSuggestionOutputSchema},
+      system: input.systemPrompt,
+      prompt: `You are an AI assistant helping a player create their character and world for a tabletop role-playing game.
 The player will provide their current setup and a request. Your job is to provide creative suggestions and, if applicable, update the setup fields with new content.
 
 Your response should be conversational and helpful, in the following language: {{{language}}}. You can ask clarifying questions or provide a few different ideas.
@@ -55,15 +65,8 @@ Player's Request:
 "{{{playerRequest}}}"
 
 Now, provide your suggestion and any field updates.`,
-});
-
-const generateSetupSuggestionFlow = ai.defineFlow(
-  {
-    name: 'generateSetupSuggestionFlow',
-    inputSchema: GenerateSetupSuggestionInputSchema,
-    outputSchema: GenerateSetupSuggestionOutputSchema,
-  },
-  async input => {
+    });
+    
     const {output} = await prompt(input);
     return output!;
   }

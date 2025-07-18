@@ -29,6 +29,8 @@ interface GameContextType {
   updateAttribute: (id: string, newAttribute: PlayerAttribute) => void;
   deleteAttribute: (id: string) => void;
   gameReady: boolean;
+  debugSystemPrompt: string;
+  setDebugSystemPrompt: Dispatch<SetStateAction<string>>;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -53,6 +55,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [dialogue, setDialogue] = useState<DialogueMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [gameReady, setGameReady] = useState(false);
+  const [debugSystemPrompt, setDebugSystemPrompt] = useState('');
+
 
   useEffect(() => {
     const hasInitialSetup = stats.name && stats.attributes.length > 0 && dialogue.length > 0;
@@ -139,6 +143,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     updateAttribute,
     deleteAttribute,
     gameReady,
+    debugSystemPrompt,
+    setDebugSystemPrompt,
   };
 
   if (!gameReady && pathname !== '/setup') {
