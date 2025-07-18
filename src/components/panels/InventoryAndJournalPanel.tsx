@@ -1,18 +1,22 @@
+// src/components/panels/InventoryAndJournalPanel.tsx
 "use client";
 
 import { useGame } from '@/context/GameContext';
 import { useLocalization } from '@/context/LocalizationContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BookMarked, ScrollText, Swords, Sparkles, Loader2, Send } from 'lucide-react';
+import { BookMarked, ScrollText, Swords, Sparkles, Loader2, Send, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { suggestInventoryItemUse } from '@/ai/flows/suggest-inventory-item-use';
 import { useState } from 'react';
-import { Card, CardContent } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
 import { discussPlotProgression } from '@/ai/flows/discuss-plot-progression';
 import { cn } from '@/lib/utils';
+import type { InventoryItem, JournalEntry } from '@/lib/types';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '../ui/dialog';
+import { Textarea } from '../ui/textarea';
 
 interface DiscussionMessage {
     speaker: 'Player' | 'AI';
@@ -20,13 +24,26 @@ interface DiscussionMessage {
 }
 
 export default function InventoryAndJournalPanel({ className }: { className?: string }) {
-  const { inventory, journal, dialogue, stats } = useGame();
+  const { 
+    inventory, 
+    journal, 
+    dialogue, 
+    stats,
+    updateInventoryItem,
+    deleteInventoryItem,
+    updateJournalEntry,
+    deleteJournalEntry,
+   } = useGame();
   const { t, locale } = useLocalization();
   const [suggestion, setSuggestion] = useState<string | null>(null);
   const [isSuggesting, setIsSuggesting] = useState(false);
   const [discussionHistory, setDiscussionHistory] = useState<DiscussionMessage[]>([]);
   const [discussionInput, setDiscussionInput] = useState('');
   const [isDiscussing, setIsDiscussing] = useState(false);
+
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<InventoryItem | JournalEntry | null>(null);
+  const [editText, setEditText] = useState('');
 
   const handleSuggestion = async () => {
     setIsSuggesting(true);
@@ -75,6 +92,29 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
     }
   }
 
+  const openEditModal = (item: InventoryItem | JournalEntry) => {
+    setEditingItem(item);
+    if ('name' in item) {
+      setEditText(item.name);
+    } else {
+      setEditText(item.content);
+    }
+    setIsEditModalOpen(true);
+  }
+
+  const handleEditSubmit = () => {
+    if (!editingItem || !editText.trim()) return;
+
+    if ('name' in editingItem) {
+      updateInventoryItem(editingItem.id, editText);
+    } else {
+      updateJournalEntry(editingItem.id, editText);
+    }
+    setIsEditModalOpen(false);
+    setEditingItem(null);
+    setEditText('');
+  }
+
   return (
     <aside className={cn("bg-card flex-col h-full border-l", className)}>
       <Tabs defaultValue="inventory" className="flex flex-col h-full">
@@ -95,9 +135,19 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
             {inventory.length > 0 ? (
               <ul className="space-y-2">
                 {inventory.map(item => (
-                  <li key={item.id} className="text-sm p-2 bg-background rounded-md flex items-center gap-2">
-                    <BookMarked className="w-4 h-4 text-primary" />
-                    {item.name}
+                  <li key={item.id} className="text-sm p-2 bg-background rounded-md flex items-center justify-between group">
+                    <div className="flex items-center gap-2">
+                      <BookMarked className="w-4 h-4 text-primary" />
+                      <span>{item.name}</span>
+                    </div>
+                    <div className="hidden group-hover:flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditModal(item)}>
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteInventoryItem(item.id)}>
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -111,7 +161,10 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
                 </Button>
                 {suggestion && (
                     <Card className="mt-4 bg-background">
-                        <CardContent className="p-4 text-sm text-foreground">
+                        <CardHeader className="p-4 pb-2">
+                            <CardTitle className="text-base">{t('suggestion.title')}</CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-4 pt-0 text-sm text-muted-foreground">
                             {suggestion}
                         </CardContent>
                     </Card>
@@ -124,8 +177,16 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
               {journal.length > 0 ? (
                 <ul className="space-y-3">
                   {journal.map(entry => (
-                    <li key={entry.id} className="text-sm p-3 bg-background rounded-md border">
-                      {entry.content}
+                    <li key={entry.id} className="text-sm p-3 bg-background rounded-md border group relative">
+                      <p>{entry.content}</p>
+                       <div className="absolute top-1 right-1 hidden group-hover:flex items-center gap-1 bg-background/80 rounded-md p-0.5">
+                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditModal(entry)}>
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteJournalEntry(entry.id)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                     </li>
                   ))}
                 </ul>
@@ -174,6 +235,25 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
             </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingItem && 'name' in editingItem ? t('editModal.editItemTitle') : t('editModal.editEntryTitle')}</DialogTitle>
+            <DialogDescription>{t('editModal.description')}</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {editingItem && 'name' in editingItem ? (
+                <Input value={editText} onChange={(e) => setEditText(e.target.value)} />
+            ) : (
+                <Textarea value={editText} onChange={(e) => setEditText(e.target.value)} rows={5} />
+            )}
+          </div>
+          <DialogFooter>
+            <Button onClick={handleEditSubmit}>{t('buttons.saveChanges')}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </aside>
   );
 }

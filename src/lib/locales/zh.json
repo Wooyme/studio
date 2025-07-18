@@ -66,5 +66,8 @@
   "mobile.characterSheet": "角色卡",
   "mobile.inventoryAndJournal": "物品与日志",
   "discussPlot.title": "与DM商讨",
-  "discussPlot.inputPlaceholder": "询问关于剧情的事..."
+  "discussPlot.inputPlaceholder": "询问关于剧情的事...",
+  "editModal.editItemTitle": "编辑物品",
+  "editModal.editEntryTitle": "编辑日志条目",
+  "editModal.description": "在下方修改你的物品或日志条目。"
 }

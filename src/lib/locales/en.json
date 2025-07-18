@@ -66,5 +66,8 @@
   "mobile.characterSheet": "Character Sheet",
   "mobile.inventoryAndJournal": "Inventory & Journal",
   "discussPlot.title": "Discuss with DM",
-  "discussPlot.inputPlaceholder": "Ask about the plot..."
+  "discussPlot.inputPlaceholder": "Ask about the plot...",
+  "editModal.editItemTitle": "Edit Inventory Item",
+  "editModal.editEntryTitle": "Edit Journal Entry",
+  "editModal.description": "Make changes to your item or journal entry below."
 }

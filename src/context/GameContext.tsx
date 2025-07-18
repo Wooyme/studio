@@ -13,9 +13,13 @@ interface GameContextType {
   inventory: InventoryItem[];
   setInventory: Dispatch<SetStateAction<InventoryItem[]>>;
   addInventoryItem: (name: string) => void;
+  updateInventoryItem: (id: string, name: string) => void;
+  deleteInventoryItem: (id: string) => void;
   journal: JournalEntry[];
   setJournal: Dispatch<SetStateAction<JournalEntry[]>>;
   addJournalEntry: (content: string) => void;
+  updateJournalEntry: (id: string, content: string) => void;
+  deleteJournalEntry: (id: string) => void;
   dialogue: DialogueMessage[];
   setDialogue: Dispatch<SetStateAction<DialogueMessage[]>>;
   addDialogueMessage: (message: Omit<DialogueMessage, 'id'>) => void;
@@ -67,8 +71,24 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setInventory(prev => [...prev, { id: nanoid(), name }]);
   };
 
+  const updateInventoryItem = (id: string, name: string) => {
+    setInventory(prev => prev.map(item => item.id === id ? { ...item, name } : item));
+  };
+
+  const deleteInventoryItem = (id: string) => {
+    setInventory(prev => prev.filter(item => item.id !== id));
+  };
+
   const addJournalEntry = (content: string) => {
     setJournal(prev => [...prev, { id: nanoid(), content }]);
+  };
+
+  const updateJournalEntry = (id: string, content: string) => {
+    setJournal(prev => prev.map(entry => entry.id === id ? { ...entry, content } : entry));
+  };
+
+  const deleteJournalEntry = (id: string) => {
+    setJournal(prev => prev.filter(entry => entry.id !== id));
   };
 
   const addDialogueMessage = (message: Omit<DialogueMessage, 'id'>) => {
@@ -103,9 +123,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     inventory,
     setInventory,
     addInventoryItem,
+    updateInventoryItem,
+    deleteInventoryItem,
     journal,
     setJournal,
     addJournalEntry,
+    updateJournalEntry,
+    deleteJournalEntry,
     dialogue,
     setDialogue,
     addDialogueMessage,
