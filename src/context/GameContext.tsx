@@ -1,7 +1,8 @@
 // src/context/GameContext.tsx
 "use client";
 
-import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction, useMemo } from 'react';
+import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction, useMemo, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import type { PlayerStats, InventoryItem, JournalEntry, DialogueMessage, PlayerAttribute } from '@/lib/types';
 import { nanoid } from 'nanoid';
 import { useLocalization } from './LocalizationContext';
@@ -23,42 +24,52 @@ interface GameContextType {
   addAttribute: (attribute: Omit<PlayerAttribute, 'id'>) => void;
   updateAttribute: (id: string, newAttribute: PlayerAttribute) => void;
   deleteAttribute: (id: string) => void;
+  gameReady: boolean;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 const initialStats: PlayerStats = {
-  name: 'Aethelred',
+  name: '',
   class: 'Rogue',
   level: 1,
   hp: { current: 10, max: 10 },
   ac: 14,
-  attributes: [
-    { id: nanoid(), name: 'STR', value: 10, icon: 'Swords' },
-    { id: nanoid(), name: 'DEX', value: 16, icon: 'Dices' },
-    { id: nanoid(), name: 'CON', value: 12, icon: 'Heart' },
-    { id: nanoid(), name: 'INT', value: 13, icon: 'Brain' },
-    { id: nanoid(), name: 'WIS', value: 11, icon: 'BookOpen' },
-    { id: nanoid(), name: 'CHA', value: 14, icon: 'Smile' },
-  ],
+  attributes: [],
 };
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const { t, locale } = useLocalization();
+  const { t } = useLocalization();
+  const router = useRouter();
+  const pathname = usePathname();
   
-  const initialDialogue: DialogueMessage[] = useMemo(() => [
-    {
-      id: nanoid(),
-      speaker: 'DM',
-      text: t('initialDialogue'),
-    }
-  ], [t]);
-
   const [stats, setStats] = useState<PlayerStats>(initialStats);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [journal, setJournal] = useState<JournalEntry[]>([]);
-  const [dialogue, setDialogue] = useState<DialogueMessage[]>(initialDialogue);
+  const [dialogue, setDialogue] = useState<DialogueMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [gameReady, setGameReady] = useState(false);
+
+  useEffect(() => {
+    if (stats.name && stats.attributes.length > 0) {
+      setGameReady(true);
+      setDialogue([
+        {
+          id: nanoid(),
+          speaker: 'DM',
+          text: t('initialDialogue'),
+        }
+      ]);
+    } else {
+      setGameReady(false);
+    }
+  }, [stats, t]);
+
+  useEffect(() => {
+    if (!gameReady && pathname !== '/setup') {
+        router.replace('/setup');
+    }
+  }, [gameReady, pathname, router]);
 
   const addInventoryItem = (name: string) => {
     setInventory(prev => [...prev, { id: nanoid(), name }]);
@@ -111,7 +122,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     addAttribute,
     updateAttribute,
     deleteAttribute,
+    gameReady,
   };
+
+  if (!gameReady && pathname !== '/setup') {
+    return null; // or a loading spinner
+  }
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
 }
