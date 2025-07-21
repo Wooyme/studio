@@ -99,37 +99,39 @@ export default function DialogueInterface() {
                 </CardContent>
             </Card>
         )}
-      <TextSelectionPopover>
-        <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-          <div className="space-y-6">
-            {dialogue.map(msg => (
-              <div key={msg.id} className={`flex flex-col group ${msg.speaker === 'Player' ? 'items-end' : 'items-start'}`}>
-                <div className={`rounded-lg px-4 py-2 max-w-xl relative ${msg.speaker === 'DM' ? 'bg-card' : 'bg-primary text-primary-foreground'}`}>
-                  <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
-                   {isEditMode && (
-                      <div className="absolute top-0 -right-2 transform -translate-y-1/2 flex items-center gap-1 bg-background p-1 rounded-md border shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditDialog(msg)}>
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteDialogueMessage(msg.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                  )}
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex items-start">
-                  <div className="rounded-lg px-4 py-2 max-w-xl bg-card flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">{t('dmThinking')}</span>
+      <div className="flex-1 flex flex-col overflow-y-auto">
+        <TextSelectionPopover>
+          <ScrollArea className="flex-1" ref={scrollAreaRef}>
+            <div className="space-y-6 p-4">
+                {dialogue.map(msg => (
+                  <div key={msg.id} className={`flex flex-col group ${msg.speaker === 'Player' ? 'items-end' : 'items-start'}`}>
+                    <div className={`rounded-lg px-4 py-2 max-w-xl relative ${msg.speaker === 'DM' ? 'bg-card' : 'bg-primary text-primary-foreground'}`}>
+                      <p className="text-sm whitespace-pre-wrap">{msg.text}</p>
+                       {isEditMode && (
+                          <div className="absolute top-0 -right-2 transform -translate-y-1/2 flex items-center gap-1 bg-background p-1 rounded-md border shadow-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditDialog(msg)}>
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteDialogueMessage(msg.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                      )}
+                    </div>
                   </div>
+                ))}
+                {isLoading && (
+                  <div className="flex items-start">
+                      <div className="rounded-lg px-4 py-2 max-w-xl bg-card flex items-center gap-2">
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        <span className="text-sm text-muted-foreground">{t('dmThinking')}</span>
+                      </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </ScrollArea>
-      </TextSelectionPopover>
+            </ScrollArea>
+        </TextSelectionPopover>
+      </div>
       <ActionToolbar />
       <Dialog open={!!editingMessage} onOpenChange={(isOpen) => !isOpen && setEditingMessage(null)}>
         <DialogContent>
