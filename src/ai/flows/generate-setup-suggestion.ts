@@ -13,7 +13,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type { DebuggableFlow, SupportedLocale } from '@/lib/types';
-import { getTranslations } from '@/lib/locales/server';
+import { getTranslator } from '@/lib/locales/server';
 
 const GenerateSetupSuggestionInputSchema = z.object({
   currentSetup: z.string().describe('A JSON string representing the current character and world setup so far.'),
@@ -47,7 +47,7 @@ const generateSetupSuggestionFlow: DebuggableFlow<GenerateSetupSuggestionInput, 
     outputSchema: GenerateSetupSuggestionOutputSchema,
   },
   async input => {
-    const t = await getTranslations(input.language as SupportedLocale);
+    const t = await getTranslator(input.language as SupportedLocale);
 
     const promptText = `
 ${t('prompts.generateSetupSuggestion.main')}

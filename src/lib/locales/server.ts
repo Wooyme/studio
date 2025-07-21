@@ -8,3 +8,19 @@ const translations = {
 };
 
 export const getTranslations = async (locale: SupportedLocale) => translations[locale]();
+
+type Translations = Awaited<ReturnType<typeof getTranslations>>;
+
+export const getTranslator = async (locale: SupportedLocale) => {
+  const dictionary = await getTranslations(locale);
+
+  return (key: keyof Translations, params?: Record<string, string>): string => {
+    let translation = dictionary[key] || key;
+    if (params) {
+      for (const [paramKey, paramValue] of Object.entries(params)) {
+        translation = translation.replace(`{${paramKey}}`, paramValue);
+      }
+    }
+    return translation;
+  };
+};

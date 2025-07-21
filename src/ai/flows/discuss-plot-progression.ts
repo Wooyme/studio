@@ -10,7 +10,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type { DebuggableFlow, SupportedLocale } from '@/lib/types';
-import { getTranslations } from '@/lib/locales/server';
+import { getTranslator } from '@/lib/locales/server';
 
 const DiscussPlotProgressionInputSchema = z.object({
   playerQuery: z.string().describe('The player’s question or topic for discussion.'),
@@ -36,7 +36,7 @@ const discussPlotProgressionFlow: DebuggableFlow<DiscussPlotProgressionInput, Di
     outputSchema: DiscussPlotProgressionOutputSchema,
   },
   async input => {
-    const t = await getTranslations(input.language as SupportedLocale);
+    const t = await getTranslator(input.language as SupportedLocale);
 
     const promptText = `
 ${t('prompts.discussPlotProgression.main')}

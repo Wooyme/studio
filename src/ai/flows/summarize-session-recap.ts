@@ -10,7 +10,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type { DebuggableFlow, SupportedLocale } from '@/lib/types';
-import { getTranslations } from '@/lib/locales/server';
+import { getTranslator } from '@/lib/locales/server';
 
 const SummarizeSessionRecapInputSchema = z.object({
   sessionLog: z
@@ -41,7 +41,7 @@ const summarizeSessionRecapFlow: DebuggableFlow<SummarizeSessionRecapInput, Summ
     outputSchema: SummarizeSessionRecapOutputSchema,
   },
   async input => {
-    const t = await getTranslations(input.language as SupportedLocale);
+    const t = await getTranslator(input.language as SupportedLocale);
     
     const promptText = `
 ${t('prompts.summarizeSessionRecap.main')}
@@ -49,7 +49,7 @@ ${t('prompts.summarizeSessionRecap.main')}
 ${t('prompts.summarizeSessionRecap.languageInstruction')}
 
 ${t('prompts.summarizeSessionRecap.sessionLogHeader')}:
-{{sessionLog}}`;
+{{{sessionLog}}}`;
 
     const prompt = ai.definePrompt({
       name: 'summarizeSessionRecapPrompt',

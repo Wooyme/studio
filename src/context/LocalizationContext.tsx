@@ -11,7 +11,6 @@ interface LocalizationContextType {
   locale: SupportedLocale;
   setLocale: (locale: SupportedLocale) => void;
   t: (key: keyof Translations, params?: Record<string, string>) => string;
-  translations: Translations;
 }
 
 const translationsData = { en, zh };
@@ -40,7 +39,6 @@ export function LocalizationProvider({ children }: { children: ReactNode }) {
     locale,
     setLocale,
     t,
-    translations,
   };
 
   return <LocalizationContext.Provider value={value}>{children}</LocalizationContext.Provider>;

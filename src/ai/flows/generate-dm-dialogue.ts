@@ -16,7 +16,7 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 import type { DebuggableFlow, SupportedLocale } from '@/lib/types';
-import { getTranslations } from '@/lib/locales/server';
+import { getTranslator } from '@/lib/locales/server';
 
 const GenerateDmDialogueInputSchema = z.object({
   playerChoice: z.string().describe('The player’s choice in the dialogue interface.'),
@@ -43,7 +43,7 @@ const generateDmDialogueFlow: DebuggableFlow<GenerateDmDialogueInput, GenerateDm
     outputSchema: GenerateDmDialogueOutputSchema,
   },
   async input => {
-    const t = await getTranslations(input.language as SupportedLocale);
+    const t = await getTranslator(input.language as SupportedLocale);
     
     const promptText = `
 ${t('prompts.generateDmDialogue.main')}
