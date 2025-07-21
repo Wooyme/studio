@@ -1,11 +1,12 @@
 // src/context/GameContext.tsx
 "use client";
 
-import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, Dispatch, SetStateAction, useEffect, useCallback } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import type { PlayerStats, InventoryItem, JournalEntry, DialogueMessage, PlayerAttribute } from '@/lib/types';
+import type { PlayerStats, InventoryItem, JournalEntry, DialogueMessage, PlayerAttribute, Action, BodyPart } from '@/lib/types';
 import { nanoid } from 'nanoid';
 import { useLocalization } from './LocalizationContext';
+import { generateDmDialogue } from '@/ai/flows/generate-dm-dialogue';
 
 interface GameContextType {
   stats: PlayerStats;
@@ -33,6 +34,16 @@ interface GameContextType {
   gameReady: boolean;
   debugSystemPrompt: string;
   setDebugSystemPrompt: Dispatch<SetStateAction<string>>;
+  
+  // New action system state
+  currentAction: Action | null;
+  setCurrentAction: Dispatch<SetStateAction<Action | null>>;
+  currentBodyPart: BodyPart | null;
+  setCurrentBodyPart: Dispatch<SetStateAction<BodyPart | null>>;
+  currentTarget: string | null;
+  setCurrentTarget: Dispatch<SetStateAction<string | null>>;
+  isActionReady: () => boolean;
+  submitPlayerAction: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -46,10 +57,11 @@ const initialStats: PlayerStats = {
   hp: { current: 0, max: 0 },
   ac: 0,
   attributes: [],
+  bodyParts: [],
 };
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const { t } = useLocalization();
+  const { t, locale } = useLocalization();
   const router = useRouter();
   const pathname = usePathname();
   
@@ -60,6 +72,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(false);
   const [gameReady, setGameReady] = useState(false);
   const [debugSystemPrompt, setDebugSystemPrompt] = useState('');
+
+  // State for the new action system
+  const [currentAction, setCurrentAction] = useState<Action | null>(null);
+  const [currentBodyPart, setCurrentBodyPart] = useState<BodyPart | null>(null);
+  const [currentTarget, setCurrentTarget] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -89,6 +106,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
       localStorage.removeItem(LOCAL_STORAGE_KEY_DEBUG_PROMPT);
     }
   }, [debugSystemPrompt]);
+  
+  // Reset parts of the action when the core action changes
+  useEffect(() => {
+      setCurrentBodyPart(null);
+      setCurrentTarget(null);
+  }, [currentAction]);
+
 
   const addInventoryItem = (name: string) => {
     setInventory(prev => [...prev, { id: nanoid(), name }]);
@@ -147,6 +171,70 @@ export function GameProvider({ children }: { children: ReactNode }) {
       attributes: prevStats.attributes.filter(attr => attr.id !== id)
     }));
   };
+  
+  const isActionReady = useCallback(() => {
+    if (!currentAction) return false;
+    if (currentAction.requiresBodyPart && !currentBodyPart) return false;
+    if (currentAction.requiresTarget && !currentTarget) return false;
+    return true;
+  }, [currentAction, currentBodyPart, currentTarget]);
+  
+  const getPlayerActionText = useCallback(() => {
+    if (!isActionReady()) return "";
+    let text = `${t(currentAction!.name as any)}`;
+    if (currentAction!.requiresBodyPart) {
+      text += ` ${t('action.with')} ${t(currentBodyPart!.name as any)}`;
+    }
+    if (currentAction!.requiresTarget) {
+      text += ` ${currentTarget}`;
+    }
+    return text;
+  }, [isActionReady, currentAction, currentBodyPart, currentTarget, t]);
+
+  const submitPlayerAction = useCallback(async () => {
+    if (!isActionReady()) return;
+    
+    const actionText = getPlayerActionText();
+    addDialogueMessage({ speaker: 'Player', text: actionText });
+    setIsLoading(true);
+    
+    // Reset action state
+    setCurrentAction(null);
+    setCurrentBodyPart(null);
+    setCurrentTarget(null);
+
+    const translatedStats = {
+      ...stats,
+      class: t('stats.class'),
+    };
+    const gameState = JSON.stringify({ stats: translatedStats, inventory, journal });
+
+    try {
+      const result = await generateDmDialogue({ 
+        playerChoice: actionText, 
+        gameState, 
+        language: locale,
+        systemPrompt: debugSystemPrompt || undefined,
+      });
+      
+      const combinedText = `${result.dialogue}\n\n${result.scenario}`;
+      
+      addDialogueMessage({
+        speaker: 'DM',
+        text: combinedText,
+      });
+
+    } catch (error) {
+      console.error('Error generating DM dialogue:', error);
+      addDialogueMessage({
+        speaker: 'DM',
+        text: t('connectionError'),
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [isActionReady, getPlayerActionText, stats, inventory, journal, locale, debugSystemPrompt, t]);
+
 
   const value = {
     stats,
@@ -174,6 +262,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
     gameReady,
     debugSystemPrompt,
     setDebugSystemPrompt,
+    // New action system
+    currentAction,
+    setCurrentAction,
+    currentBodyPart,
+    setCurrentBodyPart,
+    currentTarget,
+    setCurrentTarget,
+    isActionReady,
+    submitPlayerAction,
   };
 
   if (!gameReady && pathname !== '/setup') {

@@ -5,91 +5,43 @@ import { useGame } from '@/context/GameContext';
 import { useLocalization } from '@/context/LocalizationContext';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { generateDmDialogue } from '@/ai/flows/generate-dm-dialogue';
 import { nanoid } from 'nanoid';
-import { useEffect, useRef, useState, FormEvent } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import TextSelectionPopover from './TextSelectionPopover';
-import { Loader2, Send, Pencil, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, Trash2 } from 'lucide-react';
 import { summarizeSessionRecap } from '@/ai/flows/summarize-session-recap';
-import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Switch } from '../ui/switch';
 import { Label } from '../ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
 import { Textarea } from '../ui/textarea';
 import type { DialogueMessage } from '@/lib/types';
+import ActionToolbar from './ActionToolbar';
 
 export default function DialogueInterface() {
   const { 
     dialogue, 
-    addDialogueMessage, 
-    stats, 
-    inventory, 
-    journal, 
-    isLoading, 
-    setIsLoading, 
+    isLoading,
     debugSystemPrompt,
     updateDialogueMessage,
     deleteDialogueMessage
   } = useGame();
-  const { t, locale } = useLocalization();
+  const { t } = useLocalization();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [recap, setRecap] = useState<string | null>(null);
   const [isRecapping, setIsRecapping] = useState(false);
-  const [inputValue, setInputValue] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingMessage, setEditingMessage] = useState<DialogueMessage | null>(null);
   const [editText, setEditText] = useState("");
 
   useEffect(() => {
     if (scrollAreaRef.current) {
-      scrollAreaRef.current.scrollTo({ top: scrollAreaRef.current.scrollHeight, behavior: 'smooth' });
+      const viewport = scrollAreaRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (viewport) {
+        viewport.scrollTo({ top: viewport.scrollHeight, behavior: 'smooth' });
+      }
     }
   }, [dialogue]);
-
-  const handlePlayerInput = async (input: string) => {
-    if (!input.trim()) return;
-
-    addDialogueMessage({ speaker: 'Player', text: input });
-    setIsLoading(true);
-    setInputValue('');
-
-    const translatedStats = {
-      ...stats,
-      class: t('stats.class'),
-    };
-    const gameState = JSON.stringify({ stats: translatedStats, inventory, journal });
-
-    try {
-      const result = await generateDmDialogue({ 
-        playerChoice: input, 
-        gameState, 
-        language: locale,
-        systemPrompt: debugSystemPrompt || undefined,
-      });
-      
-      const combinedText = `${result.dialogue}\n\n${result.scenario}`;
-      
-      addDialogueMessage({
-        speaker: 'DM',
-        text: combinedText,
-      });
-
-    } catch (error) {
-      console.error('Error generating DM dialogue:', error);
-      addDialogueMessage({
-        speaker: 'DM',
-        text: t('connectionError'),
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    handlePlayerInput(inputValue);
-  };
   
   const handleRecap = async () => {
       setIsRecapping(true);
@@ -177,20 +129,7 @@ export default function DialogueInterface() {
           </div>
         </ScrollArea>
       </TextSelectionPopover>
-      <div className="p-4 border-t bg-card">
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
-          <Input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder={t('inputPlaceholder')}
-            className="flex-1"
-            disabled={isLoading}
-          />
-          <Button type="submit" size="icon" disabled={isLoading || !inputValue.trim()}>
-            <Send />
-          </Button>
-        </form>
-      </div>
+      <ActionToolbar />
       <Dialog open={!!editingMessage} onOpenChange={(isOpen) => !isOpen && setEditingMessage(null)}>
         <DialogContent>
           <DialogHeader>

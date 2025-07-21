@@ -85,5 +85,16 @@
   "debug.clear": "Clear and Reset",
   "editMode.label": "Edit Mode",
   "editMode.dialogTitle": "Edit Dialogue",
-  "editMode.dialogDescription": "Make changes to the selected dialogue entry below. This will affect the story permanently."
+  "editMode.dialogDescription": "Make changes to the selected dialogue entry below. This will affect the story permanently.",
+  "buttons.setTarget": "Set as Target",
+  "action.placeholder": "Choose an action below...",
+  "action.hint": "Select required parts to continue.",
+  "buttons.confirmAction": "Confirm Action",
+  "action.with": "with",
+  "action.use": "Use",
+  "action.take": "Take",
+  "action.look": "Look at",
+  "action.go": "Go to",
+  "action.talk": "Talk to",
+  "action.attack": "Attack"
 }

@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import * as LucideIcons from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Languages, Plus, Sparkles, Pencil, Trash2, Hand, Footprints, Smile, Heart } from 'lucide-react';
+import { Languages, Plus, Sparkles, Pencil, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { useState } from 'react';
@@ -16,11 +16,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
-import type { PlayerAttribute } from '@/lib/types';
+import type { PlayerAttribute, BodyPart } from '@/lib/types';
 import { suggestPlayerAttribute } from '@/ai/flows/suggest-player-attribute';
 import { toast } from '@/hooks/use-toast';
 import { ScrollArea } from '../ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 
 const StatItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | number }) => (
   <div className="flex items-center justify-between text-sm w-full">
@@ -32,14 +33,26 @@ const StatItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label
   </div>
 );
 
-const BodyPartItem = ({ icon: Icon, label }: { icon: React.ElementType, label: string }) => (
-    <div className="flex items-center justify-between text-sm w-full p-2 group">
-      <div className="flex items-center gap-3">
-        <Icon className="w-5 h-5 text-primary" />
-        <span className="text-foreground">{label}</span>
-      </div>
-    </div>
-  );
+const BodyPartItem = ({ bodyPart, onClick, isSelected, disabled }: { bodyPart: BodyPart, onClick: () => void, isSelected: boolean, disabled: boolean }) => {
+    const Icon = getIcon(bodyPart.icon);
+    return (
+        <Button 
+            variant="ghost" 
+            className={cn(
+                "w-full justify-start text-sm h-auto p-2", 
+                isSelected && "bg-primary/20 text-primary-foreground"
+            )}
+            onClick={onClick}
+            disabled={disabled}
+        >
+            <div className="flex items-center gap-3">
+                <Icon className="w-5 h-5 text-primary" />
+                <span className="text-foreground">{t(bodyPart.name as any)}</span>
+            </div>
+        </Button>
+    )
+};
+
 
 const getIcon = (name: string): React.FC<LucideProps> => {
   const Icon = (LucideIcons as any)[name];
@@ -48,6 +61,12 @@ const getIcon = (name: string): React.FC<LucideProps> => {
   }
   return LucideIcons.HelpCircle; 
 };
+
+// Helper function to call `t` since it's used inside a component that re-renders a lot
+const t = (key: any) => {
+    const { t: translate } = useLocalization();
+    return translate(key);
+}
 
 const attributeSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -58,7 +77,7 @@ const attributeSchema = z.object({
 type AttributeFormData = z.infer<typeof attributeSchema>;
 
 export default function StatsPanel() {
-  const { stats, dialogue, updateAttribute, addAttribute, deleteAttribute, debugSystemPrompt } = useGame();
+  const { stats, dialogue, updateAttribute, addAttribute, deleteAttribute, debugSystemPrompt, currentAction, currentBodyPart, setCurrentBodyPart } = useGame();
   const { t, setLocale, locale } = useLocalization();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAttribute, setEditingAttribute] = useState<PlayerAttribute | null>(null);
@@ -112,10 +131,19 @@ export default function StatsPanel() {
     }
   }
 
+  const handleBodyPartClick = (bodyPart: BodyPart) => {
+    if (currentAction && currentAction.requiresBodyPart) {
+      setCurrentBodyPart(bodyPart);
+    }
+  }
+
   const UserIcon = getIcon('User');
   const StarIcon = getIcon('Star');
   const HeartIcon = getIcon('Heart');
   const ShieldIcon = getIcon('Shield');
+
+  const isBodyPartSelectionActive = currentAction?.requiresBodyPart;
+  const bodyPartTabToShow = isBodyPartSelectionActive ? "bodyParts" : "attributes";
 
   return (
     <aside className="bg-card flex flex-col h-full border-r">
@@ -142,10 +170,10 @@ export default function StatsPanel() {
           </CardContent>
         </Card>
       </div>
-      <Tabs defaultValue="attributes" className="flex-1 flex flex-col overflow-hidden">
+      <Tabs defaultValue="attributes" value={bodyPartTabToShow} className="flex-1 flex flex-col overflow-hidden">
         <div className="px-4">
           <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="attributes">{t('tabs.attributes')}</TabsTrigger>
+              <TabsTrigger value="attributes" disabled={isBodyPartSelectionActive}>{t('tabs.attributes')}</TabsTrigger>
               <TabsTrigger value="bodyParts">{t('tabs.bodyParts')}</TabsTrigger>
           </TabsList>
         </div>
@@ -266,13 +294,15 @@ export default function StatsPanel() {
           </TabsContent>
           <TabsContent value="bodyParts" className="mt-0">
             <div className="p-4 space-y-1">
-                <BodyPartItem icon={Hand} label={t('bodyParts.rightHand')} />
-                <BodyPartItem icon={Hand} label={t('bodyParts.leftHand')} />
-                <BodyPartItem icon={Footprints} label={t('bodyParts.rightFoot')} />
-                <BodyPartItem icon={Footprints} label={t('bodyParts.leftFoot')} />
-                <BodyPartItem icon={Heart} label={t('bodyParts.chest')} />
-                <BodyPartItem icon={Smile} label={t('bodyParts.mouth')} />
-                <BodyPartItem icon={LucideIcons.HelpCircle} label={t('bodyParts.buttocks')} />
+                {stats.bodyParts.map(part => (
+                    <BodyPartItem 
+                        key={part.id} 
+                        bodyPart={part} 
+                        onClick={() => handleBodyPartClick(part)}
+                        isSelected={currentBodyPart?.id === part.id}
+                        disabled={!isBodyPartSelectionActive}
+                    />
+                ))}
             </div>
           </TabsContent>
         </ScrollArea>

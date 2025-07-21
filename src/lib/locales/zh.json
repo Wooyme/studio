@@ -85,5 +85,16 @@
   "debug.clear": "清除并重置",
   "editMode.label": "编辑模式",
   "editMode.dialogTitle": "编辑对话",
-  "editMode.dialogDescription": "在下方修改所选的对话条目。这将永久影响故事。"
+  "editMode.dialogDescription": "在下方修改所选的对话条目。这将永久影响故事。",
+  "buttons.setTarget": "设为目标",
+  "action.placeholder": "请在下方选择一个行动...",
+  "action.hint": "选择所需的部件以继续。",
+  "buttons.confirmAction": "确认行动",
+  "action.with": "用",
+  "action.use": "使用",
+  "action.take": "拿取",
+  "action.look": "查看",
+  "action.go": "前往",
+  "action.talk": "交谈",
+  "action.attack": "攻击"
 }

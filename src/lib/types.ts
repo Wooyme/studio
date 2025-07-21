@@ -5,6 +5,12 @@ export interface PlayerAttribute {
   icon: string;
 }
 
+export interface BodyPart {
+  id: string;
+  name: string;
+  icon: string;
+}
+
 export interface PlayerStats {
   name: string;
   class: string;
@@ -15,6 +21,7 @@ export interface PlayerStats {
   };
   ac: number;
   attributes: PlayerAttribute[];
+  bodyParts: BodyPart[];
 }
 
 export interface InventoryItem {
@@ -37,3 +44,11 @@ export interface DialogueMessage {
 export type SupportedLocale = 'en' | 'zh';
 
 export type DebuggableFlow<I, O> = (input: I) => Promise<O>;
+
+export interface Action {
+  id: string;
+  name: string;
+  icon: string;
+  requiresBodyPart: boolean;
+  requiresTarget: boolean;
+}

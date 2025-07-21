@@ -13,7 +13,7 @@ import { useGame } from '@/context/GameContext';
 import { generateSetupSuggestion } from '@/ai/flows/generate-setup-suggestion';
 import { Loader2, Send, Wand2, Languages, Plus, Sparkles, Pencil, Trash2 } from 'lucide-react';
 import Image from 'next/image';
-import type { PlayerAttribute } from '@/lib/types';
+import type { PlayerAttribute, BodyPart } from '@/lib/types';
 import { useLocalization } from '@/context/LocalizationContext';
 import * as LucideIcons from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
@@ -25,6 +25,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { suggestSetupAttribute } from '@/ai/flows/suggest-setup-attribute';
 import { toast } from '@/hooks/use-toast';
 import { nanoid } from 'nanoid';
+import { defaultBodyParts } from '@/lib/constants';
 
 interface SetupState {
   characterName: string;
@@ -35,6 +36,7 @@ interface SetupState {
   openingScene: string;
   characterImage: string;
   attributes: PlayerAttribute[];
+  bodyParts: BodyPart[];
 }
 
 interface ChatMessage {
@@ -79,6 +81,7 @@ export default function SetupPage() {
       { id: '5', name: 'WIS', value: 11, icon: 'BookOpen' },
       { id: '6', name: 'CHA', value: 14, icon: 'Smile' },
     ],
+    bodyParts: defaultBodyParts,
   });
 
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -108,7 +111,7 @@ export default function SetupPage() {
   }, [t]);
 
   const toggleLocale = () => setLocale(locale === 'en' ? 'zh' : 'en');
-  const handleInputChange = (field: keyof Omit<SetupState, 'attributes' | 'characterImage'>, value: string) => setSetupState(prev => ({ ...prev, [field]: value }));
+  const handleInputChange = (field: keyof Omit<SetupState, 'attributes' | 'characterImage' | 'bodyParts'>, value: string) => setSetupState(prev => ({ ...prev, [field]: value }));
   const handleOpenDialog = (attribute: PlayerAttribute | null = null) => {
     setEditingAttribute(attribute);
     setAttrSuggestion(null);
@@ -191,6 +194,7 @@ export default function SetupPage() {
         level: 1,
         hp: { current: 20, max: 20 },
         ac: 10,
+        bodyParts: setupState.bodyParts,
     });
     setDialogue([{ speaker: 'DM', text: setupState.openingScene, id: 'initial' }]);
     router.push('/');
