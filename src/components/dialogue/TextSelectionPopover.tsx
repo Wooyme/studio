@@ -101,7 +101,7 @@ export default function TextSelectionPopover({ children }: { children: ReactNode
   };
 
   return (
-    <div onMouseUp={handleMouseUp} className="flex-1 overflow-hidden relative">
+    <div onMouseUp={handleMouseUp} className="flex-1 overflow-auto relative">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <div ref={popoverTriggerRef} style={getTriggerStyle()} />
