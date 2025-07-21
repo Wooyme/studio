@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import * as LucideIcons from 'lucide-react';
 import type { LucideProps } from 'lucide-react';
 import { Button } from '../ui/button';
-import { Languages, Plus, Sparkles, Pencil, Trash2 } from 'lucide-react';
+import { Languages, Plus, Sparkles, Pencil, Trash2, Redo } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { useState } from 'react';
@@ -33,23 +33,42 @@ const StatItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label
   </div>
 );
 
-const BodyPartItem = ({ bodyPart, onClick, isSelected, disabled }: { bodyPart: BodyPart, onClick: () => void, isSelected: boolean, disabled: boolean }) => {
+const BodyPartItem = ({ bodyPart, onPartClick, onUnequipClick, isSelected, disabled }: { bodyPart: BodyPart, onPartClick: () => void, onUnequipClick: (e: React.MouseEvent) => void, isSelected: boolean, disabled: boolean }) => {
+    const { t } = useLocalization();
     const Icon = getIcon(bodyPart.icon);
+    
     return (
-        <Button 
-            variant="ghost" 
-            className={cn(
-                "w-full justify-start text-sm h-auto p-2", 
-                isSelected && "bg-primary/20 text-primary-foreground"
-            )}
-            onClick={onClick}
-            disabled={disabled}
-        >
-            <div className="flex items-center gap-3">
-                <Icon className="w-5 h-5 text-primary" />
-                <span className="text-foreground">{t(bodyPart.name as any)}</span>
-            </div>
-        </Button>
+        <div className="group flex items-center justify-between rounded-md hover:bg-muted/50">
+          <Button 
+              variant="ghost" 
+              className={cn(
+                  "w-full justify-start text-sm h-auto p-2 text-left", 
+                  isSelected && "bg-primary/20 text-primary-foreground"
+              )}
+              onClick={onPartClick}
+              disabled={disabled}
+          >
+              <div className="flex items-center gap-3">
+                  <Icon className="w-5 h-5 text-primary" />
+                  <div className='flex flex-col'>
+                    <span className="text-foreground">{t(bodyPart.name as any)}</span>
+                    {bodyPart.equippedItem && (
+                        <span className="text-xs text-muted-foreground">{bodyPart.equippedItem.name}</span>
+                    )}
+                  </div>
+              </div>
+          </Button>
+          {bodyPart.equippedItem && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 mr-1 shrink-0 opacity-0 group-hover:opacity-100"
+              onClick={onUnequipClick}
+            >
+              <Redo className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
     )
 };
 
@@ -62,12 +81,6 @@ const getIcon = (name: string): React.FC<LucideProps> => {
   return LucideIcons.HelpCircle; 
 };
 
-// Helper function to call `t` since it's used inside a component that re-renders a lot
-const t = (key: any) => {
-    const { t: translate } = useLocalization();
-    return translate(key);
-}
-
 const attributeSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   value: z.coerce.number().min(0, { message: "Value must be a positive number." }),
@@ -77,7 +90,7 @@ const attributeSchema = z.object({
 type AttributeFormData = z.infer<typeof attributeSchema>;
 
 export default function StatsPanel() {
-  const { stats, dialogue, updateAttribute, addAttribute, deleteAttribute, debugSystemPrompt, currentAction, currentBodyPart, setCurrentBodyPart } = useGame();
+  const { stats, dialogue, updateAttribute, addAttribute, deleteAttribute, debugSystemPrompt, currentAction, currentBodyPart, setCurrentBodyPart, unequipItem } = useGame();
   const { t, setLocale, locale } = useLocalization();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAttribute, setEditingAttribute] = useState<PlayerAttribute | null>(null);
@@ -135,6 +148,11 @@ export default function StatsPanel() {
     if (currentAction && currentAction.requiresBodyPart) {
       setCurrentBodyPart(bodyPart);
     }
+  }
+  
+  const handleUnequip = (e: React.MouseEvent, bodyPartId: string) => {
+    e.stopPropagation(); // prevent body part selection
+    unequipItem(bodyPartId);
   }
 
   const UserIcon = getIcon('User');
@@ -298,7 +316,8 @@ export default function StatsPanel() {
                     <BodyPartItem 
                         key={part.id} 
                         bodyPart={part} 
-                        onClick={() => handleBodyPartClick(part)}
+                        onPartClick={() => handleBodyPartClick(part)}
+                        onUnequipClick={(e) => handleUnequip(e, part.id)}
                         isSelected={currentBodyPart?.id === part.id}
                         disabled={!isBodyPartSelectionActive}
                     />

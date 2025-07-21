@@ -5,23 +5,27 @@ import { useGame } from '@/context/GameContext';
 import { useLocalization } from '@/context/LocalizationContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BookMarked, ScrollText, Swords, Sparkles, Loader2, Send, Pencil, Trash2 } from 'lucide-react';
+import { BookMarked, ScrollText, Swords, Sparkles, Loader2, Send, Pencil, Trash2, Redo, ShieldPlus } from 'lucide-react';
 import { Button } from '../ui/button';
 import { suggestInventoryItemUse } from '@/ai/flows/suggest-inventory-item-use';
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../ui/card';
 import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
 import { discussPlotProgression } from '@/ai/flows/discuss-plot-progression';
 import { cn } from '@/lib/utils';
-import type { InventoryItem, JournalEntry } from '@/lib/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from '../ui/dialog';
+import type { InventoryItem, JournalEntry, BodyPart } from '@/lib/types';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/dialog';
 import { Textarea } from '../ui/textarea';
+import { Label } from '../ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 interface DiscussionMessage {
     speaker: 'Player' | 'AI';
     text: string;
 }
+
+const bodyPartCategories: BodyPart['category'][] = ['Hand', 'Head', 'Torso', 'Legs', 'Feet', 'Overtop', 'Underwear'];
 
 export default function InventoryAndJournalPanel({ className }: { className?: string }) {
   const { 
@@ -34,6 +38,8 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
     updateJournalEntry,
     deleteJournalEntry,
     debugSystemPrompt,
+    equipItem,
+    unequipItem,
    } = useGame();
   const { t, locale } = useLocalization();
   const [suggestion, setSuggestion] = useState<string | null>(null);
@@ -44,7 +50,10 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<InventoryItem | JournalEntry | null>(null);
-  const [editText, setEditText] = useState('');
+  const [editName, setEditName] = useState('');
+  const [editBodyPart, setEditBodyPart] = useState<BodyPart['category'] | undefined>(undefined);
+  const [editContent, setEditContent] = useState('');
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState<InventoryItem | null>(null);
 
   const handleSuggestion = async () => {
     setIsSuggesting(true);
@@ -98,24 +107,31 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
   const openEditModal = (item: InventoryItem | JournalEntry) => {
     setEditingItem(item);
     if ('name' in item) {
-      setEditText(item.name);
+      setEditName(item.name);
+      setEditBodyPart(item.bodyPart);
+      setEditContent('');
     } else {
-      setEditText(item.content);
+      setEditContent(item.content);
+      setEditName('');
+      setEditBodyPart(undefined);
     }
     setIsEditModalOpen(true);
   }
 
   const handleEditSubmit = () => {
-    if (!editingItem || !editText.trim()) return;
+    if (!editingItem) return;
 
     if ('name' in editingItem) {
-      updateInventoryItem(editingItem.id, editText);
+      updateInventoryItem(editingItem.id, editName, editBodyPart);
     } else {
-      updateJournalEntry(editingItem.id, editText);
+      updateJournalEntry(editingItem.id, editContent);
     }
     setIsEditModalOpen(false);
     setEditingItem(null);
-    setEditText('');
+  }
+  
+  const isEquipped = (itemId: string) => {
+    return stats.bodyParts.some(part => part.equippedItem?.id === itemId);
   }
 
   return (
@@ -133,24 +149,20 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
             </TabsTrigger>
           </TabsList>
         </div>
-        <TabsContent value="inventory" className="flex-1 overflow-hidden m-0">
-          <ScrollArea className="h-full p-4">
+        <TabsContent value="inventory" className="flex-1 overflow-hidden m-0 flex">
+          <ScrollArea className="h-full p-4 basis-1/2 border-r">
             {inventory.length > 0 ? (
               <ul className="space-y-2">
                 {inventory.map(item => (
-                  <li key={item.id} className="text-sm p-2 bg-background rounded-md flex items-center justify-between group">
-                    <div className="flex items-center gap-2">
-                      <BookMarked className="w-4 h-4 text-primary" />
+                  <li key={item.id} className="text-sm">
+                    <Button 
+                      variant={selectedInventoryItem?.id === item.id ? "secondary" : "ghost"}
+                      className="w-full justify-start h-auto p-2"
+                      onClick={() => setSelectedInventoryItem(item)}
+                    >
+                      <BookMarked className="w-4 h-4 text-primary mr-2" />
                       <span>{item.name}</span>
-                    </div>
-                    <div className="hidden group-hover:flex items-center gap-1">
-                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditModal(item)}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => deleteInventoryItem(item.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -174,6 +186,39 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
                 )}
             </div>
           </ScrollArea>
+          <div className="basis-1/2 p-4">
+            {selectedInventoryItem ? (
+              <Card className="bg-transparent border-none shadow-none">
+                <CardHeader>
+                  <CardTitle>{selectedInventoryItem.name}</CardTitle>
+                   {selectedInventoryItem.bodyPart && (
+                    <CardDescription>{t('item.equippable')}: {t(`bodyCategory.${selectedInventoryItem.bodyPart}` as any)}</CardDescription>
+                  )}
+                </CardHeader>
+                <CardContent className="space-y-2">
+                   <Button onClick={() => equipItem(selectedInventoryItem)} className="w-full">
+                    <ShieldPlus className="mr-2 h-4 w-4" />
+                    {t('buttons.equip')}
+                  </Button>
+                </CardContent>
+                <CardFooter className="gap-2">
+                   <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => openEditModal(selectedInventoryItem)}>
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="outline" size="icon" className="h-8 w-8 text-destructive" onClick={() => {
+                        deleteInventoryItem(selectedInventoryItem.id);
+                        setSelectedInventoryItem(null);
+                    }}>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                </CardFooter>
+              </Card>
+            ) : (
+                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
+                    <p>{t('inventorySelectHint')}</p>
+                </div>
+            )}
+          </div>
         </TabsContent>
         <TabsContent value="journal" className="flex-1 overflow-hidden m-0 flex flex-col">
             <ScrollArea className="h-full p-4">
@@ -245,11 +290,30 @@ export default function InventoryAndJournalPanel({ className }: { className?: st
             <DialogTitle>{editingItem && 'name' in editingItem ? t('editModal.editItemTitle') : t('editModal.editEntryTitle')}</DialogTitle>
             <DialogDescription>{t('editModal.description')}</DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 space-y-4">
             {editingItem && 'name' in editingItem ? (
-                <Input value={editText} onChange={(e) => setEditText(e.target.value)} />
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="itemName">{t('editModal.itemName')}</Label>
+                    <Input id="itemName" value={editName} onChange={(e) => setEditName(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="itemBodyPart">{t('editModal.itemBodyPart')}</Label>
+                    <Select value={editBodyPart} onValueChange={(v) => setEditBodyPart(v as BodyPart['category'])}>
+                      <SelectTrigger id="itemBodyPart">
+                        <SelectValue placeholder={t('editModal.itemBodyPartPlaceholder')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">{t('editModal.itemNotEquippable')}</SelectItem>
+                        {bodyPartCategories.map(cat => (
+                            <SelectItem key={cat} value={cat}>{t(`bodyCategory.${cat}` as any)}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
             ) : (
-                <Textarea value={editText} onChange={(e) => setEditText(e.target.value)} rows={5} />
+                <Textarea value={editContent} onChange={(e) => setEditContent(e.target.value)} rows={5} />
             )}
           </div>
           <DialogFooter>

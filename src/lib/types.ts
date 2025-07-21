@@ -9,6 +9,8 @@ export interface BodyPart {
   id: string;
   name: string;
   icon: string;
+  category: 'Head' | 'Torso' | 'Legs' | 'Feet' | 'Hand' | 'Underwear' | 'Overtop';
+  equippedItem: InventoryItem | null;
 }
 
 export interface PlayerStats {
@@ -27,6 +29,7 @@ export interface PlayerStats {
 export interface InventoryItem {
   id: string;
   name: string;
+  bodyPart?: BodyPart['category']; // Where the item can be equipped
 }
 
 export interface JournalEntry {

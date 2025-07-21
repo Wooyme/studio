@@ -7,14 +7,15 @@ import type { PlayerStats, InventoryItem, JournalEntry, DialogueMessage, PlayerA
 import { nanoid } from 'nanoid';
 import { useLocalization } from './LocalizationContext';
 import { generateDmDialogue } from '@/ai/flows/generate-dm-dialogue';
+import { toast } from '@/hooks/use-toast';
 
 interface GameContextType {
   stats: PlayerStats;
   setStats: Dispatch<SetStateAction<PlayerStats>>;
   inventory: InventoryItem[];
   setInventory: Dispatch<SetStateAction<InventoryItem[]>>;
-  addInventoryItem: (name: string) => void;
-  updateInventoryItem: (id: string, name: string) => void;
+  addInventoryItem: (item: Omit<InventoryItem, 'id'>) => void;
+  updateInventoryItem: (id: string, name: string, bodyPart?: BodyPart['category']) => void;
   deleteInventoryItem: (id: string) => void;
   journal: JournalEntry[];
   setJournal: Dispatch<SetStateAction<JournalEntry[]>>;
@@ -35,7 +36,7 @@ interface GameContextType {
   debugSystemPrompt: string;
   setDebugSystemPrompt: Dispatch<SetStateAction<string>>;
   
-  // New action system state
+  // Action system state
   currentAction: Action | null;
   setCurrentAction: Dispatch<SetStateAction<Action | null>>;
   currentBodyPart: BodyPart | null;
@@ -44,6 +45,8 @@ interface GameContextType {
   setCurrentTarget: Dispatch<SetStateAction<string | null>>;
   isActionReady: () => boolean;
   submitPlayerAction: () => void;
+  equipItem: (item: InventoryItem) => void;
+  unequipItem: (bodyPartId: string) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -73,7 +76,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [gameReady, setGameReady] = useState(false);
   const [debugSystemPrompt, setDebugSystemPrompt] = useState('');
 
-  // State for the new action system
+  // State for the action system
   const [currentAction, setCurrentAction] = useState<Action | null>(null);
   const [currentBodyPart, setCurrentBodyPart] = useState<BodyPart | null>(null);
   const [currentTarget, setCurrentTarget] = useState<string | null>(null);
@@ -107,22 +110,25 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [debugSystemPrompt]);
   
-  // Reset parts of the action when the core action changes
   useEffect(() => {
       setCurrentBodyPart(null);
       setCurrentTarget(null);
   }, [currentAction]);
 
 
-  const addInventoryItem = (name: string) => {
-    setInventory(prev => [...prev, { id: nanoid(), name }]);
+  const addInventoryItem = (item: Omit<InventoryItem, 'id'>) => {
+    setInventory(prev => [...prev, { ...item, id: nanoid() }]);
   };
 
-  const updateInventoryItem = (id: string, name: string) => {
-    setInventory(prev => prev.map(item => item.id === id ? { ...item, name } : item));
+  const updateInventoryItem = (id: string, name: string, bodyPart?: BodyPart['category']) => {
+    setInventory(prev => prev.map(item => item.id === id ? { ...item, name, bodyPart } : item));
   };
 
   const deleteInventoryItem = (id: string) => {
+    const itemToUneqip = stats.bodyParts.find(p => p.equippedItem?.id === id);
+    if(itemToUneqip) {
+      unequipItem(itemToUneqip.id);
+    }
     setInventory(prev => prev.filter(item => item.id !== id));
   };
 
@@ -198,7 +204,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     addDialogueMessage({ speaker: 'Player', text: actionText });
     setIsLoading(true);
     
-    // Reset action state
     setCurrentAction(null);
     setCurrentBodyPart(null);
     setCurrentTarget(null);
@@ -233,7 +238,51 @@ export function GameProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [isActionReady, getPlayerActionText, stats, inventory, journal, locale, debugSystemPrompt, t]);
+  }, [isActionReady, getPlayerActionText, stats, inventory, journal, locale, debugSystemPrompt, t, addDialogueMessage]);
+
+  const equipItem = (item: InventoryItem) => {
+    if (!item.bodyPart) {
+      toast({ title: t('toast.cannotEquip.title'), description: t('toast.cannotEquip.description')});
+      return;
+    };
+
+    const targetBodyPart = stats.bodyParts.find(
+      (part) => part.category === item.bodyPart && !part.equippedItem
+    );
+
+    if (targetBodyPart) {
+      // Unequip item if it's already equipped somewhere else
+      unequipItem(item.id, true);
+
+      setStats((prevStats) => ({
+        ...prevStats,
+        bodyParts: prevStats.bodyParts.map((part) =>
+          part.id === targetBodyPart.id ? { ...part, equippedItem: item } : part
+        ),
+      }));
+      setInventory(prev => prev.filter(i => i.id !== item.id));
+      toast({ title: t('toast.itemEquipped.title'), description: t('toast.itemEquipped.description', { item: item.name, bodyPart: t(targetBodyPart.name as any) }) });
+    } else {
+      toast({ title: t('toast.noSlot.title'), description: t('toast.noSlot.description', { category: item.bodyPart }) });
+    }
+  };
+
+  const unequipItem = (bodyPartId: string, silent = false) => {
+    const targetBodyPart = stats.bodyParts.find((part) => part.id === bodyPartId || part.equippedItem?.id === bodyPartId);
+    if (targetBodyPart && targetBodyPart.equippedItem) {
+      const itemToUnequip = targetBodyPart.equippedItem;
+      setStats((prevStats) => ({
+        ...prevStats,
+        bodyParts: prevStats.bodyParts.map((part) =>
+          part.id === targetBodyPart.id ? { ...part, equippedItem: null } : part
+        ),
+      }));
+      addInventoryItem(itemToUnequip);
+      if (!silent) {
+        toast({ title: t('toast.itemUnequipped.title'), description: t('toast.itemUnequipped.description', { item: itemToUnequip.name }) });
+      }
+    }
+  };
 
 
   const value = {
@@ -262,7 +311,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     gameReady,
     debugSystemPrompt,
     setDebugSystemPrompt,
-    // New action system
+    // Action system
     currentAction,
     setCurrentAction,
     currentBodyPart,
@@ -271,10 +320,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setCurrentTarget,
     isActionReady,
     submitPlayerAction,
+    equipItem,
+    unequipItem,
   };
 
   if (!gameReady && pathname !== '/setup') {
-    // Render a loading state or nothing, but the context provider needs to be there for setup page
     return (
         <GameContext.Provider value={value}>
             {pathname === '/setup' ? children : null}
