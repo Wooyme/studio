@@ -15,7 +15,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import type { DebuggableFlow } from '@/lib/types';
+import type { DebuggableFlow, SupportedLocale } from '@/lib/types';
+import { getTranslations } from '@/lib/locales/server';
 
 const GenerateDmDialogueInputSchema = z.object({
   playerChoice: z.string().describe('The player’s choice in the dialogue interface.'),
@@ -42,20 +43,26 @@ const generateDmDialogueFlow: DebuggableFlow<GenerateDmDialogueInput, GenerateDm
     outputSchema: GenerateDmDialogueOutputSchema,
   },
   async input => {
+    const t = await getTranslations(input.language as SupportedLocale);
+    
+    const promptText = `
+${t('prompts.generateDmDialogue.main')}
+
+${t('prompts.generateDmDialogue.responseLanguage')}: {{{language}}}.
+
+${t('prompts.generateDmDialogue.playerChoiceHeader')}: {{{playerChoice}}}
+
+${t('prompts.generateDmDialogue.gameStateHeader')}: {{{gameState}}}
+
+${t('prompts.generateDmDialogue.instruction')}
+`;
+
     const generateDmDialoguePrompt = ai.definePrompt({
       name: 'generateDmDialoguePrompt',
       input: {schema: GenerateDmDialogueInputSchema},
       output: {schema: GenerateDmDialogueOutputSchema},
       system: input.systemPrompt,
-      prompt: `You are an AI Dungeon Master for a tabletop role-playing game. A player has made a choice, and you must generate the next part of the story, including the DM's dialogue and a description of the scenario.
-
-Respond in the following language: {{{language}}}.
-
-Player's Choice: {{{playerChoice}}}
-
-Current Game State: {{{gameState}}}
-
-Generate the DM dialogue and scenario, continuing the story based on the player's choice and the current game state. Be creative and engaging, providing a dynamic and interactive storytelling experience.`,
+      prompt: promptText,
     });
 
     const {output} = await generateDmDialoguePrompt(input);

@@ -26,7 +26,7 @@ export default function DialogueInterface() {
     updateDialogueMessage,
     deleteDialogueMessage
   } = useGame();
-  const { t } = useLocalization();
+  const { t, locale } = useLocalization();
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [recap, setRecap] = useState<string | null>(null);
   const [isRecapping, setIsRecapping] = useState(false);
@@ -50,6 +50,7 @@ export default function DialogueInterface() {
       try {
         const result = await summarizeSessionRecap({ 
           sessionLog,
+          language: locale,
           systemPrompt: debugSystemPrompt || undefined,
         });
         setRecap(result.summary);

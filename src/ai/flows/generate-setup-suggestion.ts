@@ -12,7 +12,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import type { DebuggableFlow } from '@/lib/types';
+import type { DebuggableFlow, SupportedLocale } from '@/lib/types';
+import { getTranslations } from '@/lib/locales/server';
 
 const GenerateSetupSuggestionInputSchema = z.object({
   currentSetup: z.string().describe('A JSON string representing the current character and world setup so far.'),
@@ -46,25 +47,30 @@ const generateSetupSuggestionFlow: DebuggableFlow<GenerateSetupSuggestionInput, 
     outputSchema: GenerateSetupSuggestionOutputSchema,
   },
   async input => {
+    const t = await getTranslations(input.language as SupportedLocale);
+
+    const promptText = `
+${t('prompts.generateSetupSuggestion.main')}
+
+${t('prompts.generateSetupSuggestion.responseLanguage')} {{{language}}}. ${t('prompts.generateSetupSuggestion.clarification')}
+
+${t('prompts.generateSetupSuggestion.fieldUpdateInstruction')}
+
+${t('prompts.generateSetupSuggestion.currentSetupHeader')}:
+{{{currentSetup}}}
+
+${t('prompts.generateSetupSuggestion.playerRequestHeader')}:
+"{{{playerRequest}}}"
+
+${t('prompts.generateSetupSuggestion.instruction')}
+`;
+
     const prompt = ai.definePrompt({
       name: 'generateSetupSuggestionPrompt',
       input: {schema: GenerateSetupSuggestionInputSchema},
       output: {schema: GenerateSetupSuggestionOutputSchema},
       system: input.systemPrompt,
-      prompt: `You are an AI assistant helping a player create their character and world for a tabletop role-playing game.
-The player will provide their current setup and a request. Your job is to provide creative suggestions and, if applicable, update the setup fields with new content.
-
-Your response should be conversational and helpful, in the following language: {{{language}}}. You can ask clarifying questions or provide a few different ideas.
-
-If the user's request directly implies a change to one of the fields (e.g., "Write a background for me", "Suggest a name for my character"), you should populate the 'updatedFields' object with the new content. Otherwise, you can leave it empty and just provide a conversational suggestion.
-
-Current Setup:
-{{{currentSetup}}}
-
-Player's Request:
-"{{{playerRequest}}}"
-
-Now, provide your suggestion and any field updates.`,
+      prompt: promptText,
     });
     
     const {output} = await prompt(input);

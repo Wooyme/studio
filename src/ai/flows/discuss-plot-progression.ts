@@ -9,7 +9,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import type { DebuggableFlow } from '@/lib/types';
+import type { DebuggableFlow, SupportedLocale } from '@/lib/types';
+import { getTranslations } from '@/lib/locales/server';
 
 const DiscussPlotProgressionInputSchema = z.object({
   playerQuery: z.string().describe('The player’s question or topic for discussion.'),
@@ -35,22 +36,28 @@ const discussPlotProgressionFlow: DebuggableFlow<DiscussPlotProgressionInput, Di
     outputSchema: DiscussPlotProgressionOutputSchema,
   },
   async input => {
+    const t = await getTranslations(input.language as SupportedLocale);
+
+    const promptText = `
+${t('prompts.discussPlotProgression.main')}
+
+${t('prompts.discussPlotProgression.responseLanguage')}: {{{language}}}.
+
+${t('prompts.discussPlotProgression.gameStateHeader')}:
+{{{gameState}}}
+
+${t('prompts.discussPlotProgression.playerQueryHeader')}:
+"{{{playerQuery}}}"
+
+${t('prompts.discussPlotProgression.instruction')}
+`;
+
     const prompt = ai.definePrompt({
       name: 'discussPlotProgressionPrompt',
       input: {schema: DiscussPlotProgressionInputSchema},
       output: {schema: DiscussPlotProgressionOutputSchema},
       system: input.systemPrompt,
-      prompt: `You are an AI Dungeon Master. The player wants to discuss the plot with you out-of-character. Your role is to be a collaborative storyteller. Do not reveal major spoilers, but guide the player, help them brainstorm, and offer suggestions or potential avenues they could explore based on the current game state.
-
-Your response should be in: {{{language}}}.
-
-Current Game State:
-{{{gameState}}}
-
-Player's Query:
-"{{{playerQuery}}}"
-
-Provide a helpful, in-character (as a collaborative DM) response to the player's query.`,
+      prompt: promptText,
     });
 
     const {output} = await prompt(input);

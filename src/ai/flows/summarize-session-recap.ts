@@ -9,12 +9,14 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import type { DebuggableFlow } from '@/lib/types';
+import type { DebuggableFlow, SupportedLocale } from '@/lib/types';
+import { getTranslations } from '@/lib/locales/server';
 
 const SummarizeSessionRecapInputSchema = z.object({
   sessionLog: z
     .string()
     .describe("The complete log of the tabletop role-playing game session."),
+  language: z.string().describe('The language for the response (e.g., "en", "zh").'),
   systemPrompt: z.string().optional().describe("An optional system prompt to override the default."),
 });
 export type SummarizeSessionRecapInput = z.infer<typeof SummarizeSessionRecapInputSchema>;
@@ -39,17 +41,22 @@ const summarizeSessionRecapFlow: DebuggableFlow<SummarizeSessionRecapInput, Summ
     outputSchema: SummarizeSessionRecapOutputSchema,
   },
   async input => {
+    const t = await getTranslations(input.language as SupportedLocale);
+    
+    const promptText = `
+${t('prompts.summarizeSessionRecap.main')}
+
+${t('prompts.summarizeSessionRecap.languageInstruction')}
+
+${t('prompts.summarizeSessionRecap.sessionLogHeader')}:
+{{sessionLog}}`;
+
     const prompt = ai.definePrompt({
       name: 'summarizeSessionRecapPrompt',
       input: {schema: SummarizeSessionRecapInputSchema},
       output: {schema: SummarizeSessionRecapOutputSchema},
       system: input.systemPrompt,
-      prompt: `You are an AI Dungeon Master tasked with summarizing a tabletop role-playing game session for a player.
-
-  Given the session log below, provide a concise summary of the key events and decisions made during the session. Focus on the most important plot points, character interactions, and consequences of player choices. The summary should be easily digestible and help the player quickly recap what happened and prepare for the next session.
-
-  Session Log:
-  {{sessionLog}}`,
+      prompt: promptText,
     });
 
     const {output} = await prompt(input);
